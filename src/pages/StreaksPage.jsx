@@ -1,16 +1,11 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import { adminApi } from '../api/adminApi';
-import LeaderboardTable from '../components/LeaderboardTable';
+import { Flame } from 'lucide-react';
 
 const TYPES = ['combined', 'prayer', 'quran_reading', 'dhikr'];
-
-const TYPE_DESCRIPTIONS = {
-  combined: 'Overall perfection streak across all daily goals.',
-  prayer: 'Consistency in performing all 5 daily prayers.',
-  quran_reading: 'Dedication to reading the Quran every single day.',
-  dhikr: 'Daily remembrance and supplication streaks.'
-};
+const MEDAL = ['🥇', '🥈', '🥉'];
 
 export default function StreaksPage() {
   const [streakType, setStreakType] = useState('combined');
@@ -24,38 +19,100 @@ export default function StreaksPage() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-800 font-display flex items-center gap-3 tracking-tight">
-            Global Leaderboards
-          </h1>
-          <p className="text-slate-500 text-sm mt-1">Honoring the most consistent and dedicated users</p>
+      {/* Header */}
+      <div className="flex items-start justify-between">
+        <div className="flex items-center gap-4">
+          <div className="p-2.5 bg-indigo-100 text-indigo-600 rounded-xl shadow-sm border border-indigo-200/50">
+            <Flame className="h-5 w-5" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold text-slate-800">Streaks</h1>
+            <p className="text-slate-500 text-sm mt-0.5">Users ranked by current streak length</p>
+          </div>
+        </div>
+        <div className="flex gap-2">
+          {TYPES.map((t) => (
+            <button
+              key={t}
+              onClick={() => setStreakType(t)}
+              className={`px-3.5 py-1.5 text-sm rounded-xl border font-medium transition-colors ${
+                streakType === t
+                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                  : 'border-slate-200 text-slate-600 bg-white hover:bg-slate-50 shadow-sm'
+              }`}
+            >
+              {t.replace('_', ' ')}
+            </button>
+          ))}
         </div>
       </div>
 
-      <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-2 flex flex-wrap gap-2">
-        {TYPES.map((t) => (
-          <button
-            key={t}
-            onClick={() => setStreakType(t)}
-            className={`flex-1 min-w-[120px] px-4 py-3 text-sm font-bold rounded-2xl transition-all ${streakType === t
-                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
-                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 border border-transparent hover:border-slate-100'
-              }`}
-          >
-            {t.replace('_', ' ').toUpperCase()}
-          </button>
-        ))}
-      </div>
+      {/* Table card */}
+      <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+        <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
+          <span className="text-sm font-bold text-slate-700 capitalize">
+            User Rankings — {streakType.replace(/_/g, ' ')}
+          </span>
+          <span className="text-xs text-slate-400">{rows.length} users</span>
+        </div>
 
-      <LeaderboardTable
-        title={`${streakType.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase())} Leaderboard`}
-        description={TYPE_DESCRIPTIONS[streakType]}
-        rows={rows}
-        isLoading={isLoading}
-        scoreLabel="Days"
-        scoreKey="current_streak"
-      />
+        {isLoading ? (
+          <div className="flex justify-center py-16">
+            <div className="h-10 w-10 border-4 border-slate-200 border-t-indigo-500 rounded-full animate-spin" />
+          </div>
+        ) : rows.length === 0 ? (
+          <div className="py-16 text-center">
+            <div className="p-3 bg-slate-100 rounded-2xl inline-block mb-3">
+              <Flame className="h-7 w-7 text-slate-400" />
+            </div>
+            <p className="text-slate-500 font-medium">No streak data yet.</p>
+          </div>
+        ) : (
+          <table className="w-full text-sm">
+            <thead className="bg-slate-50/80">
+              <tr>
+                <th className="text-left px-6 py-3.5 text-[10px] uppercase font-bold tracking-wider text-slate-400 w-14">Rank</th>
+                <th className="text-left px-6 py-3.5 text-[10px] uppercase font-bold tracking-wider text-slate-400">User</th>
+                <th className="text-left px-6 py-3.5 text-[10px] uppercase font-bold tracking-wider text-slate-400">Email</th>
+                <th className="text-right px-6 py-3.5 text-[10px] uppercase font-bold tracking-wider text-slate-400">Current Streak</th>
+                <th className="text-right px-6 py-3.5 text-[10px] uppercase font-bold tracking-wider text-slate-400">Longest Streak</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-50">
+              {rows.map((row, i) => {
+                const user = row.user || {};
+                return (
+                  <tr key={row._id || i} className="hover:bg-slate-50/80 transition-colors">
+                    <td className="px-6 py-4 text-center">
+                      {i < 3 ? (
+                        <span className="text-base">{MEDAL[i]}</span>
+                      ) : (
+                        <span className="font-mono text-sm font-bold text-slate-400">{i + 1}</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
+                      {user._id ? (
+                        <Link to={`/users/${user._id}`} className="font-bold text-indigo-600 hover:text-indigo-800 hover:underline">
+                          {user.name || '—'}
+                        </Link>
+                      ) : (
+                        <span className="text-slate-400 italic">Deleted user</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-slate-500">{user.email || '—'}</td>
+                    <td className="px-6 py-4 text-right font-bold text-slate-800">
+                      {row.current_streak ?? 0} days
+                    </td>
+                    <td className="px-6 py-4 text-right text-slate-500">
+                      {row.longest_streak ?? 0} days
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
+      </div>
     </div>
   );
 }

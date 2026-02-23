@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { adminApi } from '../api/adminApi';
 import LeaderboardTable from '../components/LeaderboardTable';
+import { Bell } from 'lucide-react';
 
 const FARDH_PRAYERS = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
 
@@ -25,86 +26,53 @@ export default function PrayerTrackingPage() {
   const records = recordsData?.records || [];
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-800 font-display flex items-center gap-3 tracking-tight">
-            Prayer Analytics
-          </h1>
-          <p className="text-slate-500 text-sm mt-1">Monitor prayer completion rates and view detailed logs</p>
-        </div>
-      </div>
-
+    <div className="max-w-7xl mx-auto space-y-6">
       <LeaderboardTable
-        title="Prayer Ranking"
+        title="Prayer Tracking"
         description="Users ranked by total fardh prayers completed (all time)"
         isLoading={statsLoading}
         rows={statsData?.leaderboard || []}
         scoreLabel="Prayers Completed"
         scoreKey="total_prayers"
+        icon={Bell}
       />
 
-      <div className="space-y-4">
-        <div>
-          <h2 className="text-xl font-bold text-slate-800 font-display">Prayer Records</h2>
-          <p className="text-slate-500 text-sm mt-0.5">{recordsData?.total ?? 0} total logs registered system-wide</p>
+      <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+        <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
+          <h2 className="text-sm font-bold text-slate-700">Prayer Records</h2>
+          <span className="text-xs text-slate-400">{recordsData?.total ?? 0} records</span>
         </div>
 
         {recordsLoading ? (
-          <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border border-slate-100">
-            <div className="h-8 w-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
-            <span className="font-medium text-slate-500 mt-4 animate-pulse">Loading tracking data...</span>
+          <div className="flex justify-center py-16">
+            <div className="h-10 w-10 border-4 border-slate-200 border-t-indigo-500 rounded-full animate-spin" />
           </div>
         ) : records.length === 0 ? (
-          <div className="text-center py-20 bg-white rounded-3xl border border-slate-100 text-slate-400">
-            <p className="font-bold text-slate-600 text-base mb-1">No tracked prayers</p>
-            <p className="text-sm">Users have not started logging their prayers yet.</p>
-          </div>
+          <div className="py-16 text-center text-slate-400 text-sm">No records yet.</div>
         ) : (
-          <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm text-left">
-                <thead className="bg-slate-50/80 text-slate-500 text-[10px] uppercase font-bold tracking-wider border-b border-slate-100">
-                  <tr>
-                    <th className="px-6 py-4">User</th>
-                    <th className="px-6 py-4">Date</th>
-                    <th className="px-6 py-4">Fardh Completed</th>
-                    <th className="px-6 py-4">Sunnah Completed</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-50">
-                  {records.map((rec) => (
-                    <tr key={rec.id} className="hover:bg-slate-50/80 transition-colors group">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="h-8 w-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-xs">
-                            {(rec.user_id?.name || 'U').charAt(0)}
-                          </div>
-                          <div>
-                            <div className="font-bold text-slate-800">{rec.user_id?.name || '—'}</div>
-                            <div className="text-xs text-slate-500">{rec.user_id?.email}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 font-medium text-slate-600">
-                        {rec.date ? new Date(rec.date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : '—'}
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="inline-flex py-1 px-3 bg-indigo-50 text-indigo-700 font-bold text-xs rounded-lg border border-indigo-100">
-                          {prayerSummary(rec.fardh_prayers)}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="inline-flex py-1 px-3 bg-slate-50 text-slate-600 font-bold text-xs rounded-lg border border-slate-200">
-                          {prayerSummary(rec.sunnah_prayers)}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          <table className="w-full text-sm">
+            <thead className="bg-slate-50/80">
+              <tr>
+                <th className="text-left px-6 py-3.5 text-[10px] uppercase font-bold tracking-wider text-slate-400">User</th>
+                <th className="text-left px-6 py-3.5 text-[10px] uppercase font-bold tracking-wider text-slate-400">Date</th>
+                <th className="text-left px-6 py-3.5 text-[10px] uppercase font-bold tracking-wider text-slate-400">Fardh Completed</th>
+                <th className="text-left px-6 py-3.5 text-[10px] uppercase font-bold tracking-wider text-slate-400">Sunnah Completed</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-50">
+              {records.map((rec) => (
+                <tr key={rec.id} className="hover:bg-slate-50/80 transition-colors">
+                  <td className="px-6 py-4">
+                    <div className="font-semibold text-slate-800">{rec.user_id?.name || '—'}</div>
+                    <div className="text-xs text-slate-400 mt-0.5">{rec.user_id?.email}</div>
+                  </td>
+                  <td className="px-6 py-4 text-slate-600">{rec.date}</td>
+                  <td className="px-6 py-4 text-slate-600">{prayerSummary(rec.fardh_prayers)}</td>
+                  <td className="px-6 py-4 text-slate-600">{prayerSummary(rec.sunnah_prayers)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
       </div>
     </div>
