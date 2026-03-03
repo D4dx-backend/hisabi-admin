@@ -2,15 +2,19 @@ import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { Plus, Pencil, Trash2, X, BookHeart, Save, FileText, AlignLeft, Eye } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, BookHeart, Save, FileText, AlignLeft, Eye, Search, Tag, ChevronDown } from 'lucide-react';
 import { adminApi } from '../api/adminApi';
 import ConfirmationModal from '../components/ConfirmationModal';
 import SuccessModal from '../components/SuccessModal';
 
-const EMPTY = { title: '', arabic_text: '', malayalam: '', english: '', urdu: '' };
+const EMPTY = { title: '', arabic_text: '', category: '', malayalam: '', english: '', urdu: '' };
 
-function Modal({ item, onClose, onSave }) {
-  const [form, setForm] = useState(item || EMPTY);
+function Modal({ item, categories, onClose, onSave }) {
+  const [form, setForm] = useState(
+    item
+      ? { ...item, category: item.category?._id || item.category || '' }
+      : EMPTY
+  );
   const set = (k) => (e) => setForm((p) => ({ ...p, [k]: e.target.value }));
 
   return createPortal(
@@ -53,6 +57,30 @@ function Modal({ item, onClose, onSave }) {
               onChange={set('title')}
               placeholder="e.g. Dua before eating"
             />
+          </div>
+
+          <div>
+            <label className="flex items-center gap-1.5 text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+              <Tag size={14} /> Category <span className="text-red-500">*</span>
+            </label>
+            <div className="relative">
+              <select
+                className="w-full appearance-none border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-medium bg-slate-50 focus:bg-white transition-colors pr-10"
+                value={form.category}
+                onChange={set('category')}
+              >
+                <option value="">Select a category...</option>
+                {categories.map((c) => (
+                  <option key={c._id || c.id} value={c._id || c.id}>
+                    {c.display_name}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+            </div>
+            {categories.length === 0 && (
+              <p className="text-xs text-amber-600 mt-1 font-medium">No categories found. Please add a dua category first.</p>
+            )}
           </div>
 
           <div className="pt-4 border-t border-slate-100">
@@ -132,9 +160,20 @@ function ViewModal({ item, onClose }) {
           </button>
         </div>
         <div className="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-6">
-          <div>
-            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Title</h3>
-            <p className="text-lg font-bold text-slate-800">{item.title}</p>
+          <div className="flex flex-wrap gap-6">
+            <div className="flex-1 min-w-0">
+              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Title</h3>
+              <p className="text-lg font-bold text-slate-800">{item.title}</p>
+            </div>
+            {item.category && (
+              <div>
+                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Category</h3>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                  <Tag size={11} />
+                  {item.category.display_name || item.category}
+                </span>
+              </div>
+            )}
           </div>
           {item.arabic_text && (
             <div>
@@ -172,10 +211,17 @@ export default function DuasManagement() {
   const [viewItem, setViewItem] = useState(null);
   const [itemToDelete, setItemToDelete] = useState(null);
   const [successState, setSuccessState] = useState({ isOpen: false, title: '', message: '' });
+  const [search, setSearch] = useState('');
+  const [filterCategory, setFilterCategory] = useState('');
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin-duas'],
-    queryFn: () => adminApi.getDuas().then((r) => r.data),
+    queryFn: () => adminApi.getDuas({ limit: 500 }).then((r) => r.data),
+  });
+
+  const { data: catData } = useQuery({
+    queryKey: ['admin-dua-categories'],
+    queryFn: () => adminApi.getDuaCategories({ limit: 200 }).then((r) => r.data),
   });
 
   const createMutation = useMutation({
@@ -216,7 +262,20 @@ export default function DuasManagement() {
     else updateMutation.mutate({ id: modal.id, data: form });
   };
 
-  const duas = data?.duas || [];
+  const allDuas = data?.duas || [];
+  const categories = catData?.dua_categories || [];
+
+  const duas = allDuas.filter((dua) => {
+    const q = search.trim().toLowerCase();
+    const matchesSearch =
+      !q ||
+      dua.title?.toLowerCase().includes(q) ||
+      dua.arabic_text?.toLowerCase().includes(q) ||
+      dua.category?.display_name?.toLowerCase().includes(q);
+    const catId = dua.category?._id || dua.category?.id || dua.category;
+    const matchesCategory = !filterCategory || catId === filterCategory;
+    return matchesSearch && matchesCategory;
+  });
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
@@ -229,7 +288,7 @@ export default function DuasManagement() {
             Duas
           </h1>
           <p className="text-slate-500 text-sm mt-2 ml-1">
-            Manage the {duas.length} duas in the catalogue.
+            Manage the {allDuas.length} duas in the catalogue.
           </p>
         </div>
         <button
@@ -240,12 +299,42 @@ export default function DuasManagement() {
         </button>
       </div>
 
+      {/* Search & Filter bar */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1 max-w-md">
+          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
+            type="text"
+            placeholder="Search by title or arabic text..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white font-medium"
+          />
+        </div>
+        <div className="relative min-w-[200px]">
+          <Tag size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <select
+            value={filterCategory}
+            onChange={(e) => setFilterCategory(e.target.value)}
+            className="w-full appearance-none pl-9 pr-8 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white font-medium"
+          >
+            <option value="">All Categories</option>
+            {categories.map((c) => (
+              <option key={c._id || c.id} value={c._id || c.id}>
+                {c.display_name}
+              </option>
+            ))}
+          </select>
+          <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+        </div>
+      </div>
+
       {isLoading ? (
         <div className="flex flex-col items-center justify-center p-24">
           <div className="h-10 w-10 border-4 border-slate-200 border-t-indigo-500 rounded-full animate-spin mb-4"></div>
           <p className="font-bold text-slate-500">Loading duas...</p>
         </div>
-      ) : duas.length === 0 ? (
+      ) : allDuas.length === 0 ? (
         <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-24 text-center">
           <BookHeart size={48} className="mx-auto text-slate-300 mb-4" />
           <h3 className="text-xl font-bold text-slate-700 font-display mb-2">No Duas Yet</h3>
@@ -259,11 +348,16 @@ export default function DuasManagement() {
         </div>
       ) : (
         <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+          {duas.length === 0 && (
+            <p className="text-center text-slate-400 font-medium py-12">No duas match your search or filter.</p>
+          )}
+          {duas.length > 0 && (
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
               <thead className="bg-slate-50/80 text-slate-500 text-[10px] uppercase font-bold tracking-wider border-b border-slate-100">
                 <tr>
                   <th className="px-6 py-4">Title</th>
+                  <th className="px-6 py-4">Category</th>
                   <th className="px-6 py-4 text-right">Arabic Text</th>
                   <th className="px-6 py-4">Translations</th>
                   <th className="px-6 py-4 text-right">Actions</th>
@@ -274,6 +368,16 @@ export default function DuasManagement() {
                   <tr key={dua.id} onClick={() => setViewItem(dua)} className="hover:bg-slate-50/80 transition-colors group cursor-pointer">
                     <td className="px-6 py-4">
                       <span className="font-bold text-slate-800 text-base">{dua.title}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      {dua.category ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                          <Tag size={10} />
+                          {dua.category.display_name || dua.category}
+                        </span>
+                      ) : (
+                        <span className="text-slate-400">—</span>
+                      )}
                     </td>
                     <td className="px-6 py-4 text-right">
                       {dua.arabic_text ? (
@@ -322,12 +426,14 @@ export default function DuasManagement() {
               </tbody>
             </table>
           </div>
+          )}
         </div>
       )}
 
       {modal && (
         <Modal
           item={modal === 'create' ? null : modal}
+          categories={categories}
           onClose={() => setModal(null)}
           onSave={handleSave}
         />

@@ -49,6 +49,12 @@ export const adminApi = {
   updateDua: (id, data) => api.put(`/admin/duas/${id}`, data),
   deleteDua: (id) => api.delete(`/admin/duas/${id}`),
 
+  // ── Content Management: Dua Categories ────────────────────────────
+  getDuaCategories: (params) => api.get('/admin/dua-categories', { params }),
+  createDuaCategory: (data) => api.post('/admin/dua-categories', data),
+  updateDuaCategory: (id, data) => api.put(`/admin/dua-categories/${id}`, data),
+  deleteDuaCategory: (id) => api.delete(`/admin/dua-categories/${id}`),
+
   // ── Content Management: Dhikr Types ───────────────────────────────
   getDhikrTypes: (params) => api.get('/admin/dhikr-types', { params }),
   createDhikrType: (data) => api.post('/admin/dhikr-types', data),

@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Users, UsersRound, ScrollText, LogOut,
   BookOpen, Sparkles, Moon, Activity, HandHeart,
   Flame, BookMarked, BookCheck, BookOpenCheck, TrendingUp,
-  LibraryBig, GraduationCap, Menu, Search, Bell, X, User as UserIcon
+  LibraryBig, GraduationCap, Menu, Search, Bell, X, User as UserIcon, Tag
 } from 'lucide-react';
 import ConfirmationModal from './ConfirmationModal';
 
@@ -18,6 +18,7 @@ const mainNav = [
 
 const contentNav = [
   { to: '/content/duas', label: 'Duas', Icon: BookOpen },
+  { to: '/content/dua-categories', label: 'Dua Categories', Icon: Tag },
   { to: '/content/dhikr-types', label: 'Dhikr Types', Icon: Sparkles },
   { to: '/content/fasting-types', label: 'Fasting Types', Icon: Moon },
   { to: '/content/quran-reading-portions', label: 'Reading Portions', Icon: LibraryBig },

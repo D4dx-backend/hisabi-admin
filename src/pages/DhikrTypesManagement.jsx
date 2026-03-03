@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { Plus, Pencil, Trash2, X, Sparkles, Save, FileText, AlignLeft, Eye } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, Sparkles, Save, FileText, AlignLeft, Eye, Search } from 'lucide-react';
 import { adminApi } from '../api/adminApi';
 import ConfirmationModal from '../components/ConfirmationModal';
 import SuccessModal from '../components/SuccessModal';
@@ -172,6 +172,7 @@ export default function DhikrTypesManagement() {
   const [viewItem, setViewItem] = useState(null);
   const [itemToDelete, setItemToDelete] = useState(null);
   const [successState, setSuccessState] = useState({ isOpen: false, title: '', message: '' });
+  const [search, setSearch] = useState('');
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin-dhikr-types'],
@@ -216,7 +217,13 @@ export default function DhikrTypesManagement() {
     else updateMutation.mutate({ id: modal.id, data: form });
   };
 
-  const types = data?.dhikr_types || [];
+  const allTypes = data?.dhikr_types || [];
+  const types = search.trim()
+    ? allTypes.filter((t) => {
+        const q = search.toLowerCase();
+        return t.name?.toLowerCase().includes(q) || t.arabic_text?.toLowerCase().includes(q);
+      })
+    : allTypes;
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
@@ -229,7 +236,7 @@ export default function DhikrTypesManagement() {
             Dhikr Types
           </h1>
           <p className="text-slate-500 text-sm mt-2 ml-1">
-            Manage the {types.length} dhikr types in the catalogue.
+            Manage the {allTypes.length} dhikr types in the catalogue.
           </p>
         </div>
         <button
@@ -240,12 +247,24 @@ export default function DhikrTypesManagement() {
         </button>
       </div>
 
+      {/* Search */}
+      <div className="relative max-w-md">
+        <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+        <input
+          type="text"
+          placeholder="Search dhikr types..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white font-medium"
+        />
+      </div>
+
       {isLoading ? (
         <div className="flex flex-col items-center justify-center p-24">
           <div className="h-10 w-10 border-4 border-slate-200 border-t-indigo-500 rounded-full animate-spin mb-4"></div>
           <p className="font-bold text-slate-500">Loading dhikr types...</p>
         </div>
-      ) : types.length === 0 ? (
+      ) : allTypes.length === 0 ? (
         <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-24 text-center">
           <Sparkles size={48} className="mx-auto text-slate-300 mb-4" />
           <h3 className="text-xl font-bold text-slate-700 font-display mb-2">No Dhikr Types Yet</h3>
@@ -259,6 +278,10 @@ export default function DhikrTypesManagement() {
         </div>
       ) : (
         <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+          {types.length === 0 && (
+            <p className="text-center text-slate-400 font-medium py-12">No dhikr types match your search.</p>
+          )}
+          {types.length > 0 && (
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
               <thead className="bg-slate-50/80 text-slate-500 text-[10px] uppercase font-bold tracking-wider border-b border-slate-100">
@@ -320,6 +343,7 @@ export default function DhikrTypesManagement() {
               </tbody>
             </table>
           </div>
+          )}
         </div>
       )}
 

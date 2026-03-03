@@ -16,6 +16,7 @@ import ActivityLogs from './pages/ActivityLogs';
 
 // Content Management
 import DuasManagement from './pages/DuasManagement';
+import DuaCategoriesManagement from './pages/DuaCategoriesManagement';
 import DhikrTypesManagement from './pages/DhikrTypesManagement';
 import FastingTypesManagement from './pages/FastingTypesManagement';
 import QuranReadingContentPage from './pages/QuranReadingContentPage';
@@ -60,6 +61,7 @@ function App() {
 
                       {/* Content Management */}
                       <Route path="content/duas" element={<DuasManagement />} />
+                      <Route path="content/dua-categories" element={<DuaCategoriesManagement />} />
                       <Route path="content/dhikr-types" element={<DhikrTypesManagement />} />
                       <Route path="content/fasting-types" element={<FastingTypesManagement />} />
                       <Route path="content/quran-reading-portions" element={<QuranReadingContentPage />} />
