@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { Plus, Pencil, Trash2, X, BookHeart, Save, FileText, AlignLeft, Eye, Search, Tag, ChevronDown } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, Save, FileText, AlignLeft, Eye, Search, Tag, ChevronDown, RotateCcw } from 'lucide-react';
 import { adminApi } from '../api/adminApi';
 import ConfirmationModal from '../components/ConfirmationModal';
 import SuccessModal from '../components/SuccessModal';
@@ -21,13 +21,10 @@ function Modal({ item, categories, onClose, onSave }) {
 
   return createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-0">
-      {/* Backdrop */}
       <div
         className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity animate-fade-in"
         onClick={onClose}
       />
-
-      {/* Modal Content */}
       <div className="bg-white rounded-3xl shadow-2xl overflow-hidden transform transition-all w-full max-w-2xl relative z-10 animate-slide-in-right flex flex-col max-h-[90vh]">
         <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/80 shrink-0">
           <div className="flex items-center gap-3">
@@ -35,8 +32,8 @@ function Modal({ item, categories, onClose, onSave }) {
               {item ? <Pencil size={18} /> : <Plus size={18} />}
             </div>
             <div>
-              <h2 className="text-lg font-bold text-slate-800 font-display">{item ? 'Edit Dua' : 'Add Dua'}</h2>
-              <p className="text-xs text-slate-500 font-medium">{item ? 'Update dua content' : 'Add a new dua to the catalogue'}</p>
+              <h2 className="text-lg font-bold text-slate-800 font-display">{item ? 'Edit Tasbeeh' : 'Add Tasbeeh'}</h2>
+              <p className="text-xs text-slate-500 font-medium">{item ? 'Update tasbeeh content' : 'Add a new tasbeeh to the catalogue'}</p>
             </div>
           </div>
           <button
@@ -57,7 +54,7 @@ function Modal({ item, categories, onClose, onSave }) {
               className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-medium bg-slate-50 focus:bg-white transition-colors"
               value={form.title}
               onChange={set('title')}
-              placeholder="e.g. Dua before eating"
+              placeholder="e.g. Subhanallah"
             />
           </div>
 
@@ -81,7 +78,7 @@ function Modal({ item, categories, onClose, onSave }) {
               <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
             </div>
             {categories.length === 0 && (
-              <p className="text-xs text-amber-600 mt-1 font-medium">No categories found. Please add a dua category first.</p>
+              <p className="text-xs text-amber-600 mt-1 font-medium">No categories found. Please add a dhikr category first.</p>
             )}
           </div>
 
@@ -95,7 +92,7 @@ function Modal({ item, categories, onClose, onSave }) {
               className="w-full border border-slate-200 rounded-xl px-4 py-3 text-xl leading-loose font-arabic focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-indigo-50/30 focus:bg-white transition-colors resize-none placeholder-slate-300"
               value={form.arabic_text}
               onChange={set('arabic_text')}
-              placeholder="البسملة..."
+              placeholder="سُبْحَانَ اللّٰهِ"
             />
           </div>
 
@@ -180,7 +177,7 @@ function Modal({ item, categories, onClose, onSave }) {
             className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm transition-colors"
           >
             <Save size={16} />
-            {item ? 'Save Changes' : 'Create Dua'}
+            {item ? 'Save Changes' : 'Create Tasbeeh'}
           </button>
         </div>
       </div>
@@ -198,10 +195,10 @@ function ViewModal({ item, onClose }) {
         <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/80 shrink-0">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-xl bg-indigo-100 text-indigo-600 shadow-sm border border-indigo-200/50">
-              <BookHeart size={18} />
+              <RotateCcw size={18} />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-slate-800 font-display">Dua Details</h2>
+              <h2 className="text-lg font-bold text-slate-800 font-display">Tasbeeh Details</h2>
               <p className="text-xs text-slate-500 font-medium">Full content view</p>
             </div>
           </div>
@@ -281,7 +278,7 @@ function ViewModal({ item, onClose }) {
   );
 }
 
-export default function DuasManagement() {
+export default function ThasbeehsManagement() {
   const qc = useQueryClient();
   const [modal, setModal] = useState(null);
   const [viewItem, setViewItem] = useState(null);
@@ -291,44 +288,44 @@ export default function DuasManagement() {
   const [filterCategory, setFilterCategory] = useState('');
 
   const { data, isLoading } = useQuery({
-    queryKey: ['admin-duas'],
-    queryFn: () => adminApi.getDuas({ limit: 500 }).then((r) => r.data),
+    queryKey: ['admin-thasbeehs'],
+    queryFn: () => adminApi.getThasbeehs({ limit: 500 }).then((r) => r.data),
   });
 
   const { data: catData } = useQuery({
-    queryKey: ['admin-dua-categories'],
-    queryFn: () => adminApi.getDuaCategories({ limit: 200 }).then((r) => r.data),
+    queryKey: ['admin-dhikr-categories'],
+    queryFn: () => adminApi.getDhikrCategories({ limit: 200 }).then((r) => r.data),
   });
 
   const createMutation = useMutation({
-    mutationFn: (d) => adminApi.createDua(d),
+    mutationFn: (d) => adminApi.createTasbeeh(d),
     onSuccess: () => {
-      qc.invalidateQueries(['admin-duas']);
-      setSuccessState({ isOpen: true, title: 'Success!', message: 'Dua created successfully.' });
+      qc.invalidateQueries(['admin-thasbeehs']);
+      setSuccessState({ isOpen: true, title: 'Success!', message: 'Tasbeeh created successfully.' });
       setModal(null);
     },
-    onError: (e) => toast.error(e.response?.data?.error || 'Failed to create dua'),
+    onError: (e) => toast.error(e.response?.data?.error || 'Failed to create tasbeeh'),
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => adminApi.updateDua(id, data),
+    mutationFn: ({ id, data }) => adminApi.updateTasbeeh(id, data),
     onSuccess: () => {
-      qc.invalidateQueries(['admin-duas']);
-      setSuccessState({ isOpen: true, title: 'Success!', message: 'Dua updated successfully.' });
+      qc.invalidateQueries(['admin-thasbeehs']);
+      setSuccessState({ isOpen: true, title: 'Success!', message: 'Tasbeeh updated successfully.' });
       setModal(null);
     },
-    onError: (e) => toast.error(e.response?.data?.error || 'Failed to update dua'),
+    onError: (e) => toast.error(e.response?.data?.error || 'Failed to update tasbeeh'),
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id) => adminApi.deleteDua(id),
+    mutationFn: (id) => adminApi.deleteTasbeeh(id),
     onSuccess: () => {
-      qc.invalidateQueries(['admin-duas']);
-      setSuccessState({ isOpen: true, title: 'Deleted!', message: 'Dua removed successfully.' });
+      qc.invalidateQueries(['admin-thasbeehs']);
+      setSuccessState({ isOpen: true, title: 'Deleted!', message: 'Tasbeeh removed successfully.' });
       setItemToDelete(null);
     },
     onError: (e) => {
-      toast.error(e.response?.data?.error || 'Failed to delete dua');
+      toast.error(e.response?.data?.error || 'Failed to delete tasbeeh');
       setItemToDelete(null);
     },
   });
@@ -338,17 +335,17 @@ export default function DuasManagement() {
     else updateMutation.mutate({ id: modal.id, data: form });
   };
 
-  const allDuas = data?.duas || [];
-  const categories = catData?.dua_categories || [];
+  const allThasbeehs = data?.thasbeehs || [];
+  const categories = catData?.dhikr_categories || [];
 
-  const duas = allDuas.filter((dua) => {
+  const thasbeehs = allThasbeehs.filter((t) => {
     const q = search.trim().toLowerCase();
     const matchesSearch =
       !q ||
-      dua.title?.toLowerCase().includes(q) ||
-      dua.arabic_text?.toLowerCase().includes(q) ||
-      dua.category?.display_name?.toLowerCase().includes(q);
-    const catId = dua.category?._id || dua.category?.id || dua.category;
+      t.title?.toLowerCase().includes(q) ||
+      t.arabic_text?.toLowerCase().includes(q) ||
+      t.category?.display_name?.toLowerCase().includes(q);
+    const catId = t.category?._id || t.category?.id || t.category;
     const matchesCategory = !filterCategory || catId === filterCategory;
     return matchesSearch && matchesCategory;
   });
@@ -359,19 +356,19 @@ export default function DuasManagement() {
         <div>
           <h1 className="text-3xl font-bold text-slate-800 font-display flex items-center gap-3 tracking-tight">
             <div className="p-2.5 bg-indigo-100 text-indigo-600 rounded-xl shadow-sm border border-indigo-200/50">
-              <BookHeart size={24} />
+              <RotateCcw size={24} />
             </div>
-            Duas
+            Thasbeehs
           </h1>
           <p className="text-slate-500 text-sm mt-2 ml-1">
-            Manage the {allDuas.length} duas in the catalogue.
+            Manage the {allThasbeehs.length} thasbeehs in the catalogue.
           </p>
         </div>
         <button
           onClick={() => setModal('create')}
           className="flex items-center gap-2 px-5 py-2.5 bg-slate-900 text-white font-bold text-sm rounded-xl hover:bg-indigo-600 transition-colors shadow-sm self-start sm:self-auto"
         >
-          <Plus size={18} /> Add Dua
+          <Plus size={18} /> Add Tasbeeh
         </button>
       </div>
 
@@ -408,108 +405,108 @@ export default function DuasManagement() {
       {isLoading ? (
         <div className="flex flex-col items-center justify-center p-24">
           <div className="h-10 w-10 border-4 border-slate-200 border-t-indigo-500 rounded-full animate-spin mb-4"></div>
-          <p className="font-bold text-slate-500">Loading duas...</p>
+          <p className="font-bold text-slate-500">Loading thasbeehs...</p>
         </div>
-      ) : allDuas.length === 0 ? (
+      ) : allThasbeehs.length === 0 ? (
         <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-24 text-center">
-          <BookHeart size={48} className="mx-auto text-slate-300 mb-4" />
-          <h3 className="text-xl font-bold text-slate-700 font-display mb-2">No Duas Yet</h3>
-          <p className="text-slate-500 max-w-sm mx-auto">Add the first dua to the catalogue.</p>
+          <RotateCcw size={48} className="mx-auto text-slate-300 mb-4" />
+          <h3 className="text-xl font-bold text-slate-700 font-display mb-2">No Thasbeehs Yet</h3>
+          <p className="text-slate-500 max-w-sm mx-auto">Add the first tasbeeh to the catalogue.</p>
           <button
             onClick={() => setModal('create')}
             className="mt-6 inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-50 text-indigo-600 font-bold text-sm rounded-xl border border-indigo-200 hover:bg-indigo-100 transition-colors"
           >
-            <Plus size={16} /> Add First Dua
+            <Plus size={16} /> Add First Tasbeeh
           </button>
         </div>
       ) : (
         <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
-          {duas.length === 0 && (
-            <p className="text-center text-slate-400 font-medium py-12">No duas match your search or filter.</p>
+          {thasbeehs.length === 0 && (
+            <p className="text-center text-slate-400 font-medium py-12">No thasbeehs match your search or filter.</p>
           )}
-          {duas.length > 0 && (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="bg-slate-50/80 text-slate-500 text-[10px] uppercase font-bold tracking-wider border-b border-slate-100">
-                <tr>
-                  <th className="px-6 py-4">Title</th>
-                  <th className="px-6 py-4">Category</th>
-                  <th className="px-6 py-4 text-right">Arabic Text</th>
-                  <th className="px-6 py-4">Count</th>
-                  <th className="px-6 py-4">Translations</th>
-                  <th className="px-6 py-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-50">
-                {duas.map((dua) => (
-                  <tr key={dua.id} onClick={() => setViewItem(dua)} className="hover:bg-slate-50/80 transition-colors group cursor-pointer">
-                    <td className="px-6 py-4">
-                      <span className="font-bold text-slate-800 text-base">{dua.title}</span>
-                    </td>
-                    <td className="px-6 py-4">
-                      {dua.category ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
-                          <Tag size={10} />
-                          {dua.category.display_name || dua.category}
-                        </span>
-                      ) : (
-                        <span className="text-slate-400">—</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      {dua.arabic_text ? (
-                        <span className="font-arabic text-slate-700 text-lg leading-loose" dir="rtl">
-                          {dua.arabic_text.length > 60 ? dua.arabic_text.substring(0, 60) + '...' : dua.arabic_text}
-                        </span>
-                      ) : (
-                        <span className="text-slate-400">—</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4">
-                      {dua.count !== undefined ? (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">{dua.count}</span>
-                      ) : (
-                        <span className="text-slate-400">—</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex flex-wrap gap-1.5">
-                        {dua.malayalam && <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold border bg-slate-100 text-slate-600 border-slate-200">ML</span>}
-                        {dua.english && <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold border bg-slate-100 text-slate-600 border-slate-200">EN</span>}
-                        {dua.urdu && <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold border bg-slate-100 text-slate-600 border-slate-200">UR</span>}
-                        {!dua.malayalam && !dua.english && !dua.urdu && <span className="text-slate-400">—</span>}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button
-                          onClick={(e) => { e.stopPropagation(); setViewItem(dua); }}
-                          className="p-2 rounded-xl text-slate-400 bg-white border border-slate-100 hover:bg-slate-100 hover:text-indigo-600 transition-colors shadow-sm"
-                          title="View"
-                        >
-                          <Eye size={16} />
-                        </button>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); setModal(dua); }}
-                          className="p-2 rounded-xl text-slate-400 bg-white border border-slate-100 hover:bg-slate-100 hover:text-indigo-600 transition-colors shadow-sm"
-                          title="Edit"
-                        >
-                          <Pencil size={16} />
-                        </button>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); setItemToDelete(dua); }}
-                          className="p-2 rounded-xl text-slate-400 bg-white border border-slate-100 hover:bg-red-50 hover:border-red-100 hover:text-red-600 transition-colors shadow-sm"
-                          title="Delete"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </td>
+          {thasbeehs.length > 0 && (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left">
+                <thead className="bg-slate-50/80 text-slate-500 text-[10px] uppercase font-bold tracking-wider border-b border-slate-100">
+                  <tr>
+                    <th className="px-6 py-4">Title</th>
+                    <th className="px-6 py-4">Category</th>
+                    <th className="px-6 py-4 text-right">Arabic Text</th>
+                    <th className="px-6 py-4">Count</th>
+                    <th className="px-6 py-4">Translations</th>
+                    <th className="px-6 py-4 text-right">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-slate-50">
+                  {thasbeehs.map((t) => (
+                    <tr key={t.id} onClick={() => setViewItem(t)} className="hover:bg-slate-50/80 transition-colors group cursor-pointer">
+                      <td className="px-6 py-4">
+                        <span className="font-bold text-slate-800 text-base">{t.title}</span>
+                      </td>
+                      <td className="px-6 py-4">
+                        {t.category ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                            <Tag size={10} />
+                            {t.category.display_name || t.category}
+                          </span>
+                        ) : (
+                          <span className="text-slate-400">—</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        {t.arabic_text ? (
+                          <span className="font-arabic text-slate-700 text-lg leading-loose" dir="rtl">
+                            {t.arabic_text.length > 60 ? t.arabic_text.substring(0, 60) + '...' : t.arabic_text}
+                          </span>
+                        ) : (
+                          <span className="text-slate-400">—</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        {t.count !== undefined ? (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">{t.count}</span>
+                        ) : (
+                          <span className="text-slate-400">—</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-wrap gap-1.5">
+                          {t.malayalam && <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold border bg-slate-100 text-slate-600 border-slate-200">ML</span>}
+                          {t.english && <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold border bg-slate-100 text-slate-600 border-slate-200">EN</span>}
+                          {t.urdu && <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold border bg-slate-100 text-slate-600 border-slate-200">UR</span>}
+                          {!t.malayalam && !t.english && !t.urdu && <span className="text-slate-400">—</span>}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setViewItem(t); }}
+                            className="p-2 rounded-xl text-slate-400 bg-white border border-slate-100 hover:bg-slate-100 hover:text-indigo-600 transition-colors shadow-sm"
+                            title="View"
+                          >
+                            <Eye size={16} />
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setModal(t); }}
+                            className="p-2 rounded-xl text-slate-400 bg-white border border-slate-100 hover:bg-slate-100 hover:text-indigo-600 transition-colors shadow-sm"
+                            title="Edit"
+                          >
+                            <Pencil size={16} />
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setItemToDelete(t); }}
+                            className="p-2 rounded-xl text-slate-400 bg-white border border-slate-100 hover:bg-red-50 hover:border-red-100 hover:text-red-600 transition-colors shadow-sm"
+                            title="Delete"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       )}
@@ -527,7 +524,7 @@ export default function DuasManagement() {
         isOpen={!!itemToDelete}
         onClose={() => setItemToDelete(null)}
         onConfirm={() => deleteMutation.mutate(itemToDelete.id)}
-        title="Delete Dua"
+        title="Delete Tasbeeh"
         message={`Are you sure you want to delete "${itemToDelete?.title}"? This action cannot be undone.`}
         confirmText="Yes, delete it"
         cancelText="Cancel"
