@@ -55,11 +55,23 @@ export const adminApi = {
   updateDuaCategory: (id, data) => api.put(`/admin/dua-categories/${id}`, data),
   deleteDuaCategory: (id) => api.delete(`/admin/dua-categories/${id}`),
 
+  // ── Content Management: Dhikr Categories ──────────────────────────
+  getDhikrCategories: (params) => api.get('/admin/dhikr-categories', { params }),
+  createDhikrCategory: (data) => api.post('/admin/dhikr-categories', data),
+  updateDhikrCategory: (id, data) => api.put(`/admin/dhikr-categories/${id}`, data),
+  deleteDhikrCategory: (id) => api.delete(`/admin/dhikr-categories/${id}`),
+
   // ── Content Management: Dhikr Types ───────────────────────────────
   getDhikrTypes: (params) => api.get('/admin/dhikr-types', { params }),
   createDhikrType: (data) => api.post('/admin/dhikr-types', data),
   updateDhikrType: (id, data) => api.put(`/admin/dhikr-types/${id}`, data),
   deleteDhikrType: (id) => api.delete(`/admin/dhikr-types/${id}`),
+
+  // ── Content Management: Thasbeehs ─────────────────────────────────
+  getThasbeehs: (params) => api.get('/admin/thasbeehs', { params }),
+  createTasbeeh: (data) => api.post('/admin/thasbeehs', data),
+  updateTasbeeh: (id, data) => api.put(`/admin/thasbeehs/${id}`, data),
+  deleteTasbeeh: (id) => api.delete(`/admin/thasbeehs/${id}`),
 
   // ── Content Management: Fasting Types ─────────────────────────────
   getFastingTypes: (params) => api.get('/admin/fasting-types', { params }),
@@ -78,6 +90,24 @@ export const adminApi = {
   createQuranMemorizationContent: (data) => api.post('/admin/quran-memorization-content', data),
   updateQuranMemorizationContent: (id, data) => api.put(`/admin/quran-memorization-content/${id}`, data),
   deleteQuranMemorizationContent: (id) => api.delete(`/admin/quran-memorization-content/${id}`),
+
+  // ── Content Management: Verse Importance ──────────────────────────
+  getVerseImportances: (params) => api.get('/admin/verse-importance', { params }),
+  createVerseImportance: (data) => api.post('/admin/verse-importance', data),
+  updateVerseImportance: (id, data) => api.put(`/admin/verse-importance/${id}`, data),
+  deleteVerseImportance: (id) => api.delete(`/admin/verse-importance/${id}`),
+
+  // ── Content Management: Dhikr Importance ──────────────────────────
+  getDhikrImportances: (params) => api.get('/admin/dhikr-importance', { params }),
+  createDhikrImportance: (data) => api.post('/admin/dhikr-importance', data),
+  updateDhikrImportance: (id, data) => api.put(`/admin/dhikr-importance/${id}`, data),
+  deleteDhikrImportance: (id) => api.delete(`/admin/dhikr-importance/${id}`),
+
+  // ── Content Management: Dua Importance ────────────────────────────
+  getDuaImportances: (params) => api.get('/admin/dua-importance', { params }),
+  createDuaImportance: (data) => api.post('/admin/dua-importance', data),
+  updateDuaImportance: (id, data) => api.put(`/admin/dua-importance/${id}`, data),
+  deleteDuaImportance: (id) => api.delete(`/admin/dua-importance/${id}`),
 
   // ── Leaderboards ───────────────────────────────────────────────────
   getDhikrTrackingStats: () => api.get('/admin/models/dhikr-tracking'),

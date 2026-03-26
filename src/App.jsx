@@ -17,10 +17,15 @@ import ActivityLogs from './pages/ActivityLogs';
 // Content Management
 import DuasManagement from './pages/DuasManagement';
 import DuaCategoriesManagement from './pages/DuaCategoriesManagement';
+import DhikrCategoriesManagement from './pages/DhikrCategoriesManagement';
 import DhikrTypesManagement from './pages/DhikrTypesManagement';
+import ThasbeehsManagement from './pages/ThasbeehsManagement';
 import FastingTypesManagement from './pages/FastingTypesManagement';
 import QuranReadingContentPage from './pages/QuranReadingContentPage';
 import QuranMemorizationContentPage from './pages/QuranMemorizationContentPage';
+import VerseImportancePage from './pages/VerseImportancePage';
+import DhikrImportancePage from './pages/DhikrImportancePage';
+import DuaImportancePage from './pages/DuaImportancePage';
 
 // Leaderboard / Tracking Data
 import DhikrTrackingPage from './pages/DhikrTrackingPage';
@@ -62,10 +67,15 @@ function App() {
                       {/* Content Management */}
                       <Route path="content/duas" element={<DuasManagement />} />
                       <Route path="content/dua-categories" element={<DuaCategoriesManagement />} />
+                      <Route path="content/dhikr-categories" element={<DhikrCategoriesManagement />} />
                       <Route path="content/dhikr-types" element={<DhikrTypesManagement />} />
+                      <Route path="content/thasbeehs" element={<ThasbeehsManagement />} />
                       <Route path="content/fasting-types" element={<FastingTypesManagement />} />
                       <Route path="content/quran-reading-portions" element={<QuranReadingContentPage />} />
                       <Route path="content/quran-memorization-portions" element={<QuranMemorizationContentPage />} />
+                      <Route path="content/verse-importance" element={<VerseImportancePage />} />
+                      <Route path="content/dhikr-importance" element={<DhikrImportancePage />} />
+                      <Route path="content/dua-importance" element={<DuaImportancePage />} />
 
                       {/* Tracking Data / Leaderboards */}
                       <Route path="tracking/dhikr" element={<DhikrTrackingPage />} />

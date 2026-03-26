@@ -19,10 +19,15 @@ const mainNav = [
 const contentNav = [
   { to: '/content/duas', label: 'Duas', Icon: BookOpen },
   { to: '/content/dua-categories', label: 'Dua Categories', Icon: Tag },
+  { to: '/content/dhikr-categories', label: 'Dhikr Categories', Icon: Tag },
   { to: '/content/dhikr-types', label: 'Dhikr Types', Icon: Sparkles },
+  { to: '/content/thasbeehs', label: 'Thasbeehs', Icon: Sparkles },
   { to: '/content/fasting-types', label: 'Fasting Types', Icon: Moon },
   { to: '/content/quran-reading-portions', label: 'Reading Portions', Icon: LibraryBig },
   { to: '/content/quran-memorization-portions', label: 'Memorization Portions', Icon: GraduationCap },
+  { to: '/content/verse-importance', label: 'Verse Importance', Icon: BookOpen },
+  { to: '/content/dhikr-importance', label: 'Dhikr Importance', Icon: Sparkles },
+  { to: '/content/dua-importance', label: 'Dua Importance', Icon: BookOpen },
 ];
 
 const trackingNav = [
