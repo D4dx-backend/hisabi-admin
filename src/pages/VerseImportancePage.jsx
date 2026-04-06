@@ -207,7 +207,8 @@ export default function VerseImportancePage() {
   });
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <div className="max-w-7xl mx-auto w-full flex-1 flex flex-col min-h-0 gap-6">
+      <div className="shrink-0 space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-800 font-display flex items-center gap-3 tracking-tight">
@@ -236,7 +237,9 @@ export default function VerseImportancePage() {
           className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white font-medium"
         />
       </div>
+      </div>{/* end shrink-0 header */}
 
+      <div className="flex-1 min-h-0 overflow-y-auto scrollbar-hide">
       {isLoading ? (
         <div className="flex flex-col items-center justify-center p-24">
           <div className="h-10 w-10 border-4 border-slate-200 border-t-indigo-500 rounded-full animate-spin mb-4"></div>
@@ -318,6 +321,7 @@ export default function VerseImportancePage() {
           )}
         </div>
       )}
+      </div>{/* end scrollable content */}
 
       {modal && (
         <Modal
