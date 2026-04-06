@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
@@ -6,6 +6,9 @@ import { Plus, Pencil, Trash2, X, Save, FileText, AlignLeft, Eye, Search, Tag, C
 import { adminApi } from '../api/adminApi';
 import ConfirmationModal from '../components/ConfirmationModal';
 import SuccessModal from '../components/SuccessModal';
+import Pagination from '../components/Pagination';
+
+const LIMIT = 20;
 
 const EMPTY_DESC = { arabic: '', malayalam: '', english: '', urdu: '' };
 const EMPTY = { title: '', arabic_text: '', category: '', count: '', malayalam: '', english: '', urdu: '', description: { ...EMPTY_DESC } };
@@ -110,7 +113,7 @@ function Modal({ item, categories, onClose, onSave }) {
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-slate-100">
+          <div className="space-y-4 pt-4 border-t border-slate-100">
             {[
               { key: 'malayalam', label: 'Malayalam' },
               { key: 'english', label: 'English' },
@@ -121,7 +124,7 @@ function Modal({ item, categories, onClose, onSave }) {
                   {label}
                 </label>
                 <textarea
-                  rows={2}
+                  rows={3}
                   className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-medium bg-slate-50 focus:bg-white transition-colors resize-none"
                   value={form[key]}
                   onChange={set(key)}
@@ -145,7 +148,7 @@ function Modal({ item, categories, onClose, onSave }) {
                 placeholder="النص العربي..."
               />
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-4">
               {[
                 { key: 'malayalam', label: 'Malayalam' },
                 { key: 'english', label: 'English' },
@@ -154,7 +157,7 @@ function Modal({ item, categories, onClose, onSave }) {
                 <div key={key}>
                   <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">{label}</label>
                   <textarea
-                    rows={2}
+                    rows={3}
                     className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-medium bg-slate-50 focus:bg-white transition-colors resize-none"
                     value={form.description[key]}
                     onChange={setDesc(key)}
@@ -236,30 +239,30 @@ function ViewModal({ item, onClose }) {
               </div>
             </div>
           )}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+          <div className="space-y-4 pt-2">
             {[{ key: 'malayalam', label: 'Malayalam' }, { key: 'english', label: 'English' }, { key: 'urdu', label: 'Urdu' }].map(({ key, label }) =>
               item[key] ? (
                 <div key={key}>
                   <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">{label}</h3>
-                  <p className="text-slate-700 bg-slate-50 px-3 py-2 rounded-lg border border-slate-100 text-sm leading-relaxed">{item[key]}</p>
+                  <p className="text-slate-700 bg-slate-50 px-4 py-3 rounded-xl border border-slate-100 text-sm leading-relaxed min-h-[80px]">{item[key]}</p>
                 </div>
               ) : null
             )}
           </div>
           {item.description && (item.description.arabic || item.description.malayalam || item.description.english || item.description.urdu) && (
-            <div className="space-y-3">
+            <div className="space-y-4">
               <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Description</h3>
               {item.description.arabic && (
                 <div className="bg-indigo-50/30 p-4 rounded-xl border border-indigo-100/50">
                   <p className="text-right text-slate-800 text-xl font-arabic leading-[2.2] tracking-wide" dir="rtl">{item.description.arabic}</p>
                 </div>
               )}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-4">
                 {[{ key: 'malayalam', label: 'Malayalam' }, { key: 'english', label: 'English' }, { key: 'urdu', label: 'Urdu' }].map(({ key, label }) =>
                   item.description[key] ? (
                     <div key={key}>
                       <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">{label}</h4>
-                      <p className="text-slate-700 bg-slate-50 px-3 py-2 rounded-lg border border-slate-100 text-sm leading-relaxed">{item.description[key]}</p>
+                      <p className="text-slate-700 bg-slate-50 px-4 py-3 rounded-xl border border-slate-100 text-sm leading-relaxed min-h-[80px]">{item.description[key]}</p>
                     </div>
                   ) : null
                 )}
@@ -285,11 +288,23 @@ export default function ThasbeehsManagement() {
   const [itemToDelete, setItemToDelete] = useState(null);
   const [successState, setSuccessState] = useState({ isOpen: false, title: '', message: '' });
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
+  const [page, setPage] = useState(1);
 
-  const { data, isLoading } = useQuery({
-    queryKey: ['admin-thasbeehs'],
-    queryFn: () => adminApi.getThasbeehs({ limit: 500 }).then((r) => r.data),
+  useEffect(() => {
+    const t = setTimeout(() => { setDebouncedSearch(search); setPage(1); }, 350);
+    return () => clearTimeout(t);
+  }, [search]);
+
+  const { data, isLoading, isFetching } = useQuery({
+    queryKey: ['admin-thasbeehs', page, filterCategory, debouncedSearch],
+    queryFn: () => adminApi.getThasbeehs({
+      page,
+      limit: LIMIT,
+      ...(filterCategory && { category: filterCategory }),
+      ...(debouncedSearch && { search: debouncedSearch }),
+    }).then((r) => r.data),
   });
 
   const { data: catData } = useQuery({
@@ -335,23 +350,17 @@ export default function ThasbeehsManagement() {
     else updateMutation.mutate({ id: modal.id, data: form });
   };
 
-  const allThasbeehs = data?.thasbeehs || [];
+  const handleCategoryFilter = (val) => { setFilterCategory(val); setPage(1); };
+
+  const thasbeehs = data?.thasbeehs || [];
+  const total = data?.total ?? 0;
+  const totalPages = data?.total_pages ?? 1;
   const categories = catData?.dhikr_categories || [];
 
-  const thasbeehs = allThasbeehs.filter((t) => {
-    const q = search.trim().toLowerCase();
-    const matchesSearch =
-      !q ||
-      t.title?.toLowerCase().includes(q) ||
-      t.arabic_text?.toLowerCase().includes(q) ||
-      t.category?.display_name?.toLowerCase().includes(q);
-    const catId = t.category?._id || t.category?.id || t.category;
-    const matchesCategory = !filterCategory || catId === filterCategory;
-    return matchesSearch && matchesCategory;
-  });
-
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <div className="max-w-7xl mx-auto w-full flex-1 flex flex-col min-h-0 gap-6">
+      {/* Fixed header — never scrolls */}
+      <div className="shrink-0 space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-800 font-display flex items-center gap-3 tracking-tight">
@@ -361,7 +370,7 @@ export default function ThasbeehsManagement() {
             Thasbeehs
           </h1>
           <p className="text-slate-500 text-sm mt-2 ml-1">
-            Manage the {allThasbeehs.length} thasbeehs in the catalogue.
+            {total > 0 ? `${total} thasbeehs in the catalogue` : 'Manage thasbeehs in the catalogue'}
           </p>
         </div>
         <button
@@ -384,47 +393,43 @@ export default function ThasbeehsManagement() {
             className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white font-medium"
           />
         </div>
-        <div className="relative min-w-[200px]">
+        <div className="relative min-w-[220px]">
           <Tag size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <select
             value={filterCategory}
-            onChange={(e) => setFilterCategory(e.target.value)}
+            onChange={(e) => handleCategoryFilter(e.target.value)}
             className="w-full appearance-none pl-9 pr-8 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white font-medium"
           >
             <option value="">All Categories</option>
             {categories.map((c) => (
-              <option key={c._id || c.id} value={c._id || c.id}>
-                {c.display_name}
-              </option>
+              <option key={c._id || c.id} value={c._id || c.id}>{c.display_name}</option>
             ))}
           </select>
           <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
         </div>
       </div>
+      </div>{/* end fixed header */}
 
+      <div className="flex-1 min-h-0 overflow-y-auto scrollbar-hide">
       {isLoading ? (
         <div className="flex flex-col items-center justify-center p-24">
           <div className="h-10 w-10 border-4 border-slate-200 border-t-indigo-500 rounded-full animate-spin mb-4"></div>
           <p className="font-bold text-slate-500">Loading thasbeehs...</p>
         </div>
-      ) : allThasbeehs.length === 0 ? (
+      ) : !isLoading && thasbeehs.length === 0 && !debouncedSearch && !filterCategory && page === 1 ? (
         <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-24 text-center">
           <RotateCcw size={48} className="mx-auto text-slate-300 mb-4" />
           <h3 className="text-xl font-bold text-slate-700 font-display mb-2">No Thasbeehs Yet</h3>
           <p className="text-slate-500 max-w-sm mx-auto">Add the first tasbeeh to the catalogue.</p>
-          <button
-            onClick={() => setModal('create')}
-            className="mt-6 inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-50 text-indigo-600 font-bold text-sm rounded-xl border border-indigo-200 hover:bg-indigo-100 transition-colors"
-          >
+          <button onClick={() => setModal('create')} className="mt-6 inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-50 text-indigo-600 font-bold text-sm rounded-xl border border-indigo-200 hover:bg-indigo-100 transition-colors">
             <Plus size={16} /> Add First Tasbeeh
           </button>
         </div>
       ) : (
-        <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
-          {thasbeehs.length === 0 && (
+        <div className={`bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden transition-opacity ${isFetching && !isLoading ? 'opacity-70' : 'opacity-100'}`}>
+          {thasbeehs.length === 0 ? (
             <p className="text-center text-slate-400 font-medium py-12">No thasbeehs match your search or filter.</p>
-          )}
-          {thasbeehs.length > 0 && (
+          ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm text-left">
                 <thead className="bg-slate-50/80 text-slate-500 text-[10px] uppercase font-bold tracking-wider border-b border-slate-100">
@@ -440,34 +445,17 @@ export default function ThasbeehsManagement() {
                 <tbody className="divide-y divide-slate-50">
                   {thasbeehs.map((t) => (
                     <tr key={t.id} onClick={() => setViewItem(t)} className="hover:bg-slate-50/80 transition-colors group cursor-pointer">
-                      <td className="px-6 py-4">
-                        <span className="font-bold text-slate-800 text-base">{t.title}</span>
-                      </td>
+                      <td className="px-6 py-4"><span className="font-bold text-slate-800 text-base">{t.title}</span></td>
                       <td className="px-6 py-4">
                         {t.category ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
-                            <Tag size={10} />
-                            {t.category.display_name || t.category}
-                          </span>
-                        ) : (
-                          <span className="text-slate-400">—</span>
-                        )}
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200"><Tag size={10} />{t.category.display_name || t.category}</span>
+                        ) : <span className="text-slate-400">—</span>}
                       </td>
                       <td className="px-6 py-4 text-right">
-                        {t.arabic_text ? (
-                          <span className="font-arabic text-slate-700 text-lg leading-loose" dir="rtl">
-                            {t.arabic_text.length > 60 ? t.arabic_text.substring(0, 60) + '...' : t.arabic_text}
-                          </span>
-                        ) : (
-                          <span className="text-slate-400">—</span>
-                        )}
+                        {t.arabic_text ? <span className="font-arabic text-slate-700 text-lg leading-loose" dir="rtl">{t.arabic_text.length > 60 ? t.arabic_text.substring(0, 60) + '...' : t.arabic_text}</span> : <span className="text-slate-400">—</span>}
                       </td>
                       <td className="px-6 py-4">
-                        {t.count !== undefined ? (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">{t.count}</span>
-                        ) : (
-                          <span className="text-slate-400">—</span>
-                        )}
+                        {t.count !== undefined ? <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">{t.count}</span> : <span className="text-slate-400">—</span>}
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex flex-wrap gap-1.5">
@@ -479,27 +467,9 @@ export default function ThasbeehsManagement() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button
-                            onClick={(e) => { e.stopPropagation(); setViewItem(t); }}
-                            className="p-2 rounded-xl text-slate-400 bg-white border border-slate-100 hover:bg-slate-100 hover:text-indigo-600 transition-colors shadow-sm"
-                            title="View"
-                          >
-                            <Eye size={16} />
-                          </button>
-                          <button
-                            onClick={(e) => { e.stopPropagation(); setModal(t); }}
-                            className="p-2 rounded-xl text-slate-400 bg-white border border-slate-100 hover:bg-slate-100 hover:text-indigo-600 transition-colors shadow-sm"
-                            title="Edit"
-                          >
-                            <Pencil size={16} />
-                          </button>
-                          <button
-                            onClick={(e) => { e.stopPropagation(); setItemToDelete(t); }}
-                            className="p-2 rounded-xl text-slate-400 bg-white border border-slate-100 hover:bg-red-50 hover:border-red-100 hover:text-red-600 transition-colors shadow-sm"
-                            title="Delete"
-                          >
-                            <Trash2 size={16} />
-                          </button>
+                          <button onClick={(e) => { e.stopPropagation(); setViewItem(t); }} className="p-2 rounded-xl text-slate-400 bg-white border border-slate-100 hover:bg-slate-100 hover:text-indigo-600 transition-colors shadow-sm" title="View"><Eye size={16} /></button>
+                          <button onClick={(e) => { e.stopPropagation(); setModal(t); }} className="p-2 rounded-xl text-slate-400 bg-white border border-slate-100 hover:bg-slate-100 hover:text-indigo-600 transition-colors shadow-sm" title="Edit"><Pencil size={16} /></button>
+                          <button onClick={(e) => { e.stopPropagation(); setItemToDelete(t); }} className="p-2 rounded-xl text-slate-400 bg-white border border-slate-100 hover:bg-red-50 hover:border-red-100 hover:text-red-600 transition-colors shadow-sm" title="Delete"><Trash2 size={16} /></button>
                         </div>
                       </td>
                     </tr>
@@ -508,8 +478,10 @@ export default function ThasbeehsManagement() {
               </table>
             </div>
           )}
+          <Pagination page={page} totalPages={totalPages} total={total} limit={LIMIT} onPageChange={setPage} isFetching={isFetching} />
         </div>
       )}
+      </div>{/* end scrollable content */}
 
       {modal && (
         <Modal

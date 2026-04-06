@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   LayoutDashboard, Users, UsersRound, ScrollText, LogOut,
   BookOpen, Sparkles, Moon, Activity, HandHeart,
   Flame, BookMarked, BookCheck, BookOpenCheck, TrendingUp,
-  LibraryBig, GraduationCap, Menu, Search, Bell, X, User as UserIcon, Tag
+  LibraryBig, GraduationCap, Menu, X, Tag, Quote
 } from 'lucide-react';
 import ConfirmationModal from './ConfirmationModal';
 
@@ -28,6 +28,7 @@ const contentNav = [
   { to: '/content/verse-importance', label: 'Verse Importance', Icon: BookOpen },
   { to: '/content/dhikr-importance', label: 'Dhikr Importance', Icon: Sparkles },
   { to: '/content/dua-importance', label: 'Dua Importance', Icon: BookOpen },
+  { to: '/content/daily-quotes', label: 'Daily Quotes', Icon: Quote },
 ];
 
 const trackingNav = [
@@ -80,7 +81,6 @@ function NavSection({ title, items, closeSidebar }) {
 export default function Layout({ children }) {
   const { logout } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
@@ -91,18 +91,6 @@ export default function Layout({ children }) {
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
   const closeSidebar = () => setIsSidebarOpen(false);
-
-  // Derive page title from path
-  const getPageTitle = () => {
-    const path = location.pathname;
-    if (path === '/') return 'Dashboard';
-    if (path.startsWith('/users')) return 'Users';
-    if (path.startsWith('/groups')) return 'Groups';
-    if (path.startsWith('/activity-logs')) return 'Activity Logs';
-    if (path.startsWith('/content')) return 'Detailed Content';
-    if (path.startsWith('/tracking')) return 'Analytics Tracking';
-    return 'Admin Portal';
-  };
 
   return (
     <div className="flex h-screen bg-slate-50/50 overflow-hidden font-sans text-slate-800">
@@ -132,7 +120,7 @@ export default function Layout({ children }) {
         </div>
 
         {/* Navigation Area */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar px-4 py-6">
+        <div className="flex-1 overflow-y-auto scrollbar-hide px-4 py-6">
           <NavSection title="Core Platform" items={mainNav} closeSidebar={closeSidebar} />
           <NavSection title="Content Catalogues" items={contentNav} closeSidebar={closeSidebar} />
           <NavSection title="Tracking Data" items={trackingNav} closeSidebar={closeSidebar} />
@@ -153,54 +141,22 @@ export default function Layout({ children }) {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col overflow-hidden relative">
 
-        {/* Top Header */}
-        <header className="h-20 bg-white/80 backdrop-blur-md border-b border-slate-100 flex items-center justify-between px-4 sm:px-8 z-30 shrink-0">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={toggleSidebar}
-              className="lg:hidden p-2 -ml-2 text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
-            >
-              <Menu size={24} />
-            </button>
-            <h1 className="text-xl font-bold text-slate-800 font-display hidden sm:block">{getPageTitle()}</h1>
-          </div>
-
-          <div className="flex items-center gap-3 sm:gap-5">
-            {/* Search Bar (Visual Only) */}
-            <div className="hidden md:flex items-center relative group">
-              <Search size={16} className="absolute left-3 text-slate-400 group-focus-within:text-emerald-500 transition-colors" />
-              <input
-                type="text"
-                placeholder="Search resources..."
-                className="pl-10 pr-4 py-2 rounded-full text-sm bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 hover:bg-white transition-all w-48 lg:w-64 font-medium"
-              />
-            </div>
-
-            {/* Notifications */}
-            <button className="relative p-2 text-slate-400 hover:bg-slate-50 hover:text-slate-600 rounded-full transition-colors">
-              <Bell size={20} />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-white"></span>
-            </button>
-
-            <div className="w-px h-6 bg-slate-200 mx-1 hidden sm:block"></div>
-
-            {/* User Avatar */}
-            <div className="flex items-center gap-3 px-1">
-              <div className="hidden sm:flex flex-col items-end">
-                <span className="text-sm font-bold text-slate-700">Super Admin</span>
-                <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">Active Session</span>
-              </div>
-              <div className="h-10 w-10 rounded-full bg-slate-900 border-2 border-slate-100 shadow-sm flex items-center justify-center text-white overflow-hidden transform hover:scale-105 transition-transform cursor-pointer">
-                <UserIcon size={18} />
-              </div>
-            </div>
-          </div>
-        </header>
+        {/* Mobile menu toggle — only visible on small screens since header is removed */}
+        <div className="lg:hidden flex items-center px-4 py-3 border-b border-slate-100 shrink-0">
+          <button
+            onClick={toggleSidebar}
+            className="p-2 text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
+          >
+            <Menu size={24} />
+          </button>
+        </div>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-8 custom-scrollbar relative z-10 w-full">
-          <div className="animate-fade-in mx-auto w-full max-w-[1600px]">
-            {children}
+        <main className="flex-1 overflow-hidden flex flex-col relative z-10 w-full">
+          <div className="animate-fade-in flex-1 min-h-0 overflow-y-auto scrollbar-hide">
+            <div className="mx-auto w-full max-w-[1600px] p-4 sm:p-8 h-full flex flex-col">
+              {children}
+            </div>
           </div>
         </main>
       </div>

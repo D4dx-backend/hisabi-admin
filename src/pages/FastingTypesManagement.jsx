@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
@@ -6,6 +6,9 @@ import { Plus, Pencil, Trash2, X, Moon, Save, FileText, AlignLeft, Search } from
 import { adminApi } from '../api/adminApi';
 import ConfirmationModal from '../components/ConfirmationModal';
 import SuccessModal from '../components/SuccessModal';
+import Pagination from '../components/Pagination';
+
+const LIMIT = 20;
 
 const EMPTY = { name: '', display_name: '', description: '' };
 
@@ -106,10 +109,21 @@ export default function FastingTypesManagement() {
   const [itemToDelete, setItemToDelete] = useState(null);
   const [successState, setSuccessState] = useState({ isOpen: false, title: '', message: '' });
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [page, setPage] = useState(1);
 
-  const { data, isLoading } = useQuery({
-    queryKey: ['admin-fasting-types'],
-    queryFn: () => adminApi.getFastingTypes().then((r) => r.data),
+  useEffect(() => {
+    const t = setTimeout(() => { setDebouncedSearch(search); setPage(1); }, 350);
+    return () => clearTimeout(t);
+  }, [search]);
+
+  const { data, isLoading, isFetching } = useQuery({
+    queryKey: ['admin-fasting-types', page, debouncedSearch],
+    queryFn: () => adminApi.getFastingTypes({
+      page,
+      limit: LIMIT,
+      ...(debouncedSearch && { search: debouncedSearch }),
+    }).then((r) => r.data),
   });
 
   const createMutation = useMutation({
@@ -150,16 +164,14 @@ export default function FastingTypesManagement() {
     else updateMutation.mutate({ id: modal.id, data: form });
   };
 
-  const allTypes = data?.fasting_types || [];
-  const types = search.trim()
-    ? allTypes.filter((t) => {
-        const q = search.toLowerCase();
-        return t.name?.toLowerCase().includes(q) || t.display_name?.toLowerCase().includes(q);
-      })
-    : allTypes;
+  const types = data?.fasting_types || [];
+  const total = data?.total ?? 0;
+  const totalPages = data?.total_pages ?? 1;
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <div className="max-w-7xl mx-auto w-full flex-1 flex flex-col min-h-0 gap-6">
+      {/* Fixed header — never scrolls */}
+      <div className="shrink-0 space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-800 font-display flex items-center gap-3 tracking-tight">
@@ -169,7 +181,7 @@ export default function FastingTypesManagement() {
             Fasting Types
           </h1>
           <p className="text-slate-500 text-sm mt-2 ml-1">
-            Manage the {allTypes.length} fasting types in the catalogue.
+            {total > 0 ? `${total} fasting types in the catalogue` : 'Manage fasting types in the catalogue'}
           </p>
         </div>
         <button
@@ -191,76 +203,64 @@ export default function FastingTypesManagement() {
           className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white font-medium"
         />
       </div>
+      </div>{/* end fixed header */}
 
+      <div className="flex-1 min-h-0 overflow-y-auto scrollbar-hide">
       {isLoading ? (
         <div className="flex flex-col items-center justify-center p-24">
           <div className="h-10 w-10 border-4 border-slate-200 border-t-indigo-500 rounded-full animate-spin mb-4"></div>
           <p className="font-bold text-slate-500">Loading fasting types...</p>
         </div>
-      ) : allTypes.length === 0 ? (
+      ) : !isLoading && types.length === 0 && !debouncedSearch && page === 1 ? (
         <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-24 text-center">
           <Moon size={48} className="mx-auto text-slate-300 mb-4" />
           <h3 className="text-xl font-bold text-slate-700 font-display mb-2">No Fasting Types Yet</h3>
           <p className="text-slate-500 max-w-sm mx-auto">Add the first fasting type to the catalogue.</p>
-          <button
-            onClick={() => setModal('create')}
-            className="mt-6 inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-50 text-indigo-600 font-bold text-sm rounded-xl border border-indigo-200 hover:bg-indigo-100 transition-colors"
-          >
+          <button onClick={() => setModal('create')} className="mt-6 inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-50 text-indigo-600 font-bold text-sm rounded-xl border border-indigo-200 hover:bg-indigo-100 transition-colors">
             <Plus size={16} /> Add First Type
           </button>
         </div>
       ) : (
-        <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
-          {types.length === 0 && (
+        <div className={`bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden transition-opacity ${isFetching && !isLoading ? 'opacity-70' : 'opacity-100'}`}>
+          {types.length === 0 ? (
             <p className="text-center text-slate-400 font-medium py-12">No fasting types match your search.</p>
-          )}
-          {types.length > 0 && (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="bg-slate-50/80 text-slate-500 text-[10px] uppercase font-bold tracking-wider border-b border-slate-100">
-                <tr>
-                  <th className="px-6 py-4">Name (key)</th>
-                  <th className="px-6 py-4">Display Name</th>
-                  <th className="px-6 py-4">Description</th>
-                  <th className="px-6 py-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-50">
-                {types.map((t) => (
-                  <tr key={t.id} className="hover:bg-slate-50/80 transition-colors group">
-                    <td className="px-6 py-4">
-                      <span className="font-mono font-bold text-slate-600 text-sm bg-slate-100 px-2 py-0.5 rounded-lg">{t.name}</span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="font-bold text-slate-800 text-base">{t.display_name}</span>
-                    </td>
-                    <td className="px-6 py-4 text-slate-500">{t.description || '—'}</td>
-                    <td className="px-6 py-4">
-                      <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button
-                          onClick={() => setModal(t)}
-                          className="p-2 rounded-xl text-slate-400 bg-white border border-slate-100 hover:bg-slate-100 hover:text-indigo-600 transition-colors shadow-sm"
-                          title="Edit"
-                        >
-                          <Pencil size={16} />
-                        </button>
-                        <button
-                          onClick={() => setItemToDelete(t)}
-                          className="p-2 rounded-xl text-slate-400 bg-white border border-slate-100 hover:bg-red-50 hover:border-red-100 hover:text-red-600 transition-colors shadow-sm"
-                          title="Delete"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </td>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left">
+                <thead className="bg-slate-50/80 text-slate-500 text-[10px] uppercase font-bold tracking-wider border-b border-slate-100">
+                  <tr>
+                    <th className="px-6 py-4">Name (key)</th>
+                    <th className="px-6 py-4">Display Name</th>
+                    <th className="px-6 py-4">Description</th>
+                    <th className="px-6 py-4 text-right">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-slate-50">
+                  {types.map((t) => (
+                    <tr key={t.id} className="hover:bg-slate-50/80 transition-colors group">
+                      <td className="px-6 py-4">
+                        <span className="font-mono font-bold text-slate-600 text-sm bg-slate-100 px-2 py-0.5 rounded-lg">{t.name}</span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="font-bold text-slate-800 text-base">{t.display_name}</span>
+                      </td>
+                      <td className="px-6 py-4 text-slate-500">{t.description || '—'}</td>
+                      <td className="px-6 py-4">
+                        <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button onClick={() => setModal(t)} className="p-2 rounded-xl text-slate-400 bg-white border border-slate-100 hover:bg-slate-100 hover:text-indigo-600 transition-colors shadow-sm" title="Edit"><Pencil size={16} /></button>
+                          <button onClick={() => setItemToDelete(t)} className="p-2 rounded-xl text-slate-400 bg-white border border-slate-100 hover:bg-red-50 hover:border-red-100 hover:text-red-600 transition-colors shadow-sm" title="Delete"><Trash2 size={16} /></button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
+          <Pagination page={page} totalPages={totalPages} total={total} limit={LIMIT} onPageChange={setPage} isFetching={isFetching} />
         </div>
       )}
+      </div>{/* end scrollable content */}
 
       {modal && (
         <Modal

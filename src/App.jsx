@@ -26,6 +26,7 @@ import QuranMemorizationContentPage from './pages/QuranMemorizationContentPage';
 import VerseImportancePage from './pages/VerseImportancePage';
 import DhikrImportancePage from './pages/DhikrImportancePage';
 import DuaImportancePage from './pages/DuaImportancePage';
+import DailyQuotesManagement from './pages/DailyQuotesManagement';
 
 // Leaderboard / Tracking Data
 import DhikrTrackingPage from './pages/DhikrTrackingPage';
@@ -76,6 +77,7 @@ function App() {
                       <Route path="content/verse-importance" element={<VerseImportancePage />} />
                       <Route path="content/dhikr-importance" element={<DhikrImportancePage />} />
                       <Route path="content/dua-importance" element={<DuaImportancePage />} />
+                      <Route path="content/daily-quotes" element={<DailyQuotesManagement />} />
 
                       {/* Tracking Data / Leaderboards */}
                       <Route path="tracking/dhikr" element={<DhikrTrackingPage />} />
