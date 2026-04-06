@@ -10,7 +10,7 @@ export default function DhikrTrackingPage() {
   });
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <div className="max-w-7xl mx-auto w-full flex-1 flex flex-col min-h-0 gap-6">
       <LeaderboardTable
         title="Dhikr Tracking"
         description="Users ranked by total dhikr count (all time)"

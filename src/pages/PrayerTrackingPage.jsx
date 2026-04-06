@@ -26,7 +26,7 @@ export default function PrayerTrackingPage() {
   const records = recordsData?.records || [];
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <div className="max-w-7xl mx-auto w-full flex-1 flex flex-col min-h-0 gap-6">
       <LeaderboardTable
         title="Prayer Tracking"
         description="Users ranked by total fardh prayers completed (all time)"
@@ -37,7 +37,7 @@ export default function PrayerTrackingPage() {
         icon={Bell}
       />
 
-      <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+      <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden flex-1 min-h-0 flex flex-col">
         <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
           <h2 className="text-sm font-bold text-slate-700">Prayer Records</h2>
           <span className="text-xs text-slate-400">{recordsData?.total ?? 0} records</span>
@@ -50,6 +50,7 @@ export default function PrayerTrackingPage() {
         ) : records.length === 0 ? (
           <div className="py-16 text-center text-slate-400 text-sm">No records yet.</div>
         ) : (
+          <div className="overflow-y-auto scrollbar-hide flex-1 min-h-0">
           <table className="w-full text-sm">
             <thead className="bg-slate-50/80">
               <tr>
@@ -73,6 +74,7 @@ export default function PrayerTrackingPage() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
     </div>

@@ -18,19 +18,19 @@ export default function StreaksPage() {
   const rows = data?.leaderboard || [];
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <div className="max-w-7xl mx-auto w-full flex-1 flex flex-col min-h-0 gap-6">
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <div className="shrink-0 flex items-start justify-between">
         <div className="flex items-center gap-4">
           <div className="p-2.5 bg-indigo-100 text-indigo-600 rounded-xl shadow-sm border border-indigo-200/50">
             <Flame className="h-5 w-5" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-slate-800">Streaks</h1>
+            <h1 className="text-3xl font-bold text-slate-800 font-display tracking-tight">Streaks Overview</h1>
             <p className="text-slate-500 text-sm mt-0.5">Users ranked by current streak length</p>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap justify-end">
           {TYPES.map((t) => (
             <button
               key={t}
@@ -48,7 +48,7 @@ export default function StreaksPage() {
       </div>
 
       {/* Table card */}
-      <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+      <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden flex-1 min-h-0 flex flex-col">
         <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
           <span className="text-sm font-bold text-slate-700 capitalize">
             User Rankings — {streakType.replace(/_/g, ' ')}
@@ -68,6 +68,7 @@ export default function StreaksPage() {
             <p className="text-slate-500 font-medium">No streak data yet.</p>
           </div>
         ) : (
+          <div className="overflow-y-auto scrollbar-hide flex-1 min-h-0">
           <table className="w-full text-sm">
             <thead className="bg-slate-50/80">
               <tr>
@@ -111,6 +112,7 @@ export default function StreaksPage() {
               })}
             </tbody>
           </table>
+          </div>
         )}
       </div>
     </div>
