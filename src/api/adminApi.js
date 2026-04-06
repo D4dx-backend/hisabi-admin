@@ -109,6 +109,12 @@ export const adminApi = {
   updateDuaImportance: (id, data) => api.put(`/admin/dua-importance/${id}`, data),
   deleteDuaImportance: (id) => api.delete(`/admin/dua-importance/${id}`),
 
+  // ── Content Management: Daily Quotes ───────────────────────────────
+  getDailyQuotes: (params) => api.get('/admin/daily-quotes', { params }),
+  createDailyQuote: (data) => api.post('/admin/daily-quotes', data),
+  updateDailyQuote: (id, data) => api.put(`/admin/daily-quotes/${id}`, data),
+  deleteDailyQuote: (id) => api.delete(`/admin/daily-quotes/${id}`),
+
   // ── Leaderboards ───────────────────────────────────────────────────
   getDhikrTrackingStats: () => api.get('/admin/models/dhikr-tracking'),
   getDuaMemorizationStats: () => api.get('/admin/models/dua-memorization'),

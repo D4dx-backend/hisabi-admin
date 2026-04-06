@@ -46,6 +46,15 @@ h1, h2, h3, h4, h5, h6 {
   background: #94a3b8;
 }
 
+/* Hide scrollbar but keep scroll functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 /* Micro Animations & Utilities */
 .glass-effect {
   background: rgba(255, 255, 255, 0.7);
