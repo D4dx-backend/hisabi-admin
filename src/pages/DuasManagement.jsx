@@ -227,7 +227,7 @@ function Modal({ item, categories, onClose, onSave }) {
             <textarea
               rows={3}
               dir="rtl"
-              className="w-full border border-slate-200 rounded-xl px-4 py-3 text-xl leading-loose font-arabic focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-indigo-50/30 focus:bg-white transition-colors resize-none placeholder-slate-300"
+              className="w-full border border-slate-200 rounded-xl px-4 py-3 text-xl leading-loose font-arabic focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-indigo-50/30 focus:bg-white transition-colors resize-y placeholder-slate-300"
               value={form.arabic_text}
               onChange={set('arabic_text')}
               placeholder="البسملة..."
@@ -262,7 +262,7 @@ function Modal({ item, categories, onClose, onSave }) {
                 </label>
                 <textarea
                   rows={3}
-                  className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-medium bg-slate-50 focus:bg-white transition-colors resize-none"
+                  className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-medium bg-slate-50 focus:bg-white transition-colors resize-y"
                   value={form[key]}
                   onChange={set(key)}
                 />
@@ -280,7 +280,7 @@ function Modal({ item, categories, onClose, onSave }) {
               <textarea
                 rows={3}
                 dir="rtl"
-                className="w-full border border-slate-200 rounded-xl px-4 py-3 text-xl leading-loose font-arabic focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-indigo-50/30 focus:bg-white transition-colors resize-none placeholder-slate-300"
+                className="w-full border border-slate-200 rounded-xl px-4 py-3 text-xl leading-loose font-arabic focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-indigo-50/30 focus:bg-white transition-colors resize-y placeholder-slate-300"
                 value={form.description.arabic}
                 onChange={setDesc('arabic')}
                 placeholder="النص العربي..."
@@ -296,7 +296,7 @@ function Modal({ item, categories, onClose, onSave }) {
                   <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">{label}</label>
                   <textarea
                     rows={3}
-                    className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-medium bg-slate-50 focus:bg-white transition-colors resize-none"
+                    className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-medium bg-slate-50 focus:bg-white transition-colors resize-y"
                     value={form.description[key]}
                     onChange={setDesc(key)}
                   />
@@ -391,7 +391,7 @@ function ViewModal({ item, onClose }) {
           {item.arabic_text && (
             <div>
               <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Arabic Text</h3>
-              <div className="bg-indigo-50/30 p-4 rounded-xl border border-indigo-100/50">
+              <div className="bg-indigo-50/30 p-4 rounded-xl border border-indigo-100/50 resize-y overflow-auto min-h-[80px]">
                 <p className="text-right text-slate-800 text-2xl font-arabic leading-[2.2] tracking-wide whitespace-pre-wrap" dir="rtl">{item.arabic_text}</p>
               </div>
             </div>
@@ -401,7 +401,7 @@ function ViewModal({ item, onClose }) {
               item[key] ? (
                 <div key={key}>
                   <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">{label}</h3>
-                  <p className="text-slate-700 bg-slate-50 px-4 py-3 rounded-xl border border-slate-100 text-sm leading-relaxed min-h-[80px] whitespace-pre-wrap">{item[key]}</p>
+                  <div className="text-slate-700 bg-slate-50 px-4 py-3 rounded-xl border border-slate-100 text-sm leading-relaxed min-h-[80px] whitespace-pre-wrap resize-y overflow-auto">{item[key]}</div>
                 </div>
               ) : null
             )}
@@ -410,7 +410,7 @@ function ViewModal({ item, onClose }) {
             <div className="space-y-4">
               <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Description</h3>
               {item.description.arabic && (
-                <div className="bg-indigo-50/30 p-4 rounded-xl border border-indigo-100/50">
+                <div className="bg-indigo-50/30 p-4 rounded-xl border border-indigo-100/50 resize-y overflow-auto min-h-[80px]">
                   <p className="text-right text-slate-800 text-xl font-arabic leading-[2.2] tracking-wide whitespace-pre-wrap" dir="rtl">{item.description.arabic}</p>
                 </div>
               )}
@@ -419,7 +419,7 @@ function ViewModal({ item, onClose }) {
                   item.description[key] ? (
                     <div key={key}>
                       <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">{label}</h4>
-                      <p className="text-slate-700 bg-slate-50 px-4 py-3 rounded-xl border border-slate-100 text-sm leading-relaxed min-h-[80px] whitespace-pre-wrap">{item.description[key]}</p>
+                      <div className="text-slate-700 bg-slate-50 px-4 py-3 rounded-xl border border-slate-100 text-sm leading-relaxed min-h-[80px] whitespace-pre-wrap resize-y overflow-auto">{item.description[key]}</div>
                     </div>
                   ) : null
                 )}
