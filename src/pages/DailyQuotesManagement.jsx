@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { Plus, Pencil, Trash2, X, Save, AlignLeft, Eye, Search, Calendar, Quote } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, Save, AlignLeft, Eye, Search, Calendar, Quote, Link } from 'lucide-react';
 import { adminApi } from '../api/adminApi';
 import ConfirmationModal from '../components/ConfirmationModal';
 import SuccessModal from '../components/SuccessModal';
@@ -10,7 +10,7 @@ import Pagination from '../components/Pagination';
 
 const LIMIT = 20;
 
-const EMPTY = { text: '', malayalam: '', english: '', urdu: '', display_date: '' };
+const EMPTY = { text: '', malayalam: '', english: '', urdu: '', display_date: '', reference: '' };
 
 function Modal({ item, onClose, onSave }) {
   const [form, setForm] = useState(item ? { ...EMPTY, ...item } : EMPTY);
@@ -87,6 +87,20 @@ function Modal({ item, onClose, onSave }) {
               </div>
             ))}
           </div>
+
+          {/* Reference (optional) */}
+          <div className="pt-4 border-t border-slate-100">
+            <label className="flex items-center gap-1.5 text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+              <Link size={14} /> Reference <span className="text-slate-400 font-normal normal-case tracking-normal">(optional)</span>
+            </label>
+            <input
+              type="text"
+              className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 font-medium bg-slate-50 focus:bg-white transition-colors"
+              value={form.reference}
+              onChange={set('reference')}
+              placeholder="e.g. Sahih al-Bukhari 1234, Quran 2:255"
+            />
+          </div>
         </div>
 
         <div className="flex justify-end gap-3 px-6 py-4 border-t border-slate-100 bg-slate-50/50 shrink-0">
@@ -155,6 +169,12 @@ function ViewModal({ item, onClose }) {
               ) : null
             )}
           </div>
+          {item.reference && (
+            <div>
+              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Reference</h3>
+              <p className="text-slate-700 bg-slate-50 px-4 py-3 rounded-xl border border-slate-100 text-sm font-medium">{item.reference}</p>
+            </div>
+          )}
         </div>
         <div className="flex justify-end gap-3 px-6 py-4 border-t border-slate-100 bg-slate-50/50 shrink-0">
           <button onClick={onClose} className="px-5 py-2.5 text-sm font-bold text-slate-600 bg-white rounded-xl border border-slate-200 hover:bg-slate-50 hover:text-slate-900 transition-colors shadow-sm">

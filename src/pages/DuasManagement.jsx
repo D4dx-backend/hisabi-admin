@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { Plus, Pencil, Trash2, X, BookHeart, Save, FileText, AlignLeft, Eye, Search, Tag, ChevronDown } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, BookHeart, Save, FileText, AlignLeft, Eye, Search, Tag, ChevronDown, Layers } from 'lucide-react';
 import { adminApi } from '../api/adminApi';
 import ConfirmationModal from '../components/ConfirmationModal';
 import SuccessModal from '../components/SuccessModal';
@@ -11,7 +11,7 @@ import Pagination from '../components/Pagination';
 const LIMIT = 20;
 
 const EMPTY_DESC = { arabic: '', malayalam: '', english: '', urdu: '' };
-const EMPTY = { title: '', arabic_text: '', category: '', count: '', malayalam: '', english: '', urdu: '', description: { ...EMPTY_DESC } };
+const EMPTY = { title: '', arabic_text: '', category: '', count: '', malayalam: '', english: '', urdu: '', description: { ...EMPTY_DESC }, additional_categories: [] };
 
 function Modal({ item, categories, onClose, onSave }) {
   const mainCategories = categories.filter((c) => !c.parent);
@@ -25,12 +25,18 @@ function Modal({ item, categories, onClose, onSave }) {
     return catId;
   };
 
+  const getInitialAdditionalCats = () => {
+    if (!item?.additional_categories) return [];
+    return item.additional_categories.map((c) => c?._id || c?.id || c || '').filter(Boolean);
+  };
+
   const [form, setForm] = useState(
     item
-      ? { ...item, category: item.category?._id || item.category || '', description: { ...EMPTY_DESC, ...(item.description || {}) } }
+      ? { ...item, category: item.category?._id || item.category || '', description: { ...EMPTY_DESC, ...(item.description || {}) }, additional_categories: getInitialAdditionalCats() }
       : EMPTY
   );
   const [selectedMainCat, setSelectedMainCat] = useState(getInitialMainCatId);
+  const [isCommon, setIsCommon] = useState(() => !!(item?.additional_categories?.length));
 
   const set = (k) => (e) => setForm((p) => ({ ...p, [k]: e.target.value }));
   const setDesc = (k) => (e) => setForm((p) => ({ ...p, description: { ...p.description, [k]: e.target.value } }));
@@ -46,15 +52,51 @@ function Modal({ item, categories, onClose, onSave }) {
   const subCategories = getSubCategories(selectedMainCat);
   const hasSubCategories = subCategories.length > 0;
 
+  // Sub-categories excluding the currently selected primary one
+  const otherSubCategories = subCategories.filter((c) => {
+    const cId = c._id || c.id;
+    return cId !== form.category;
+  });
+
   const handleMainCatChange = (e) => {
     const mainId = e.target.value;
     setSelectedMainCat(mainId);
     const subs = getSubCategories(mainId);
     if (subs.length === 0) {
-      setForm((p) => ({ ...p, category: mainId }));
+      setForm((p) => ({ ...p, category: mainId, additional_categories: [] }));
     } else {
-      setForm((p) => ({ ...p, category: '' }));
+      setForm((p) => ({ ...p, category: '', additional_categories: [] }));
     }
+    setIsCommon(false);
+  };
+
+  const handlePrimarySubCatChange = (e) => {
+    const newPrimary = e.target.value;
+    setForm((p) => ({
+      ...p,
+      category: newPrimary,
+      // Remove new primary from additional_categories if it was there
+      additional_categories: p.additional_categories.filter((id) => id !== newPrimary),
+    }));
+  };
+
+  const handleAdditionalCatToggle = (catId) => {
+    setForm((p) => {
+      const exists = p.additional_categories.includes(catId);
+      return {
+        ...p,
+        additional_categories: exists
+          ? p.additional_categories.filter((id) => id !== catId)
+          : [...p.additional_categories, catId],
+      };
+    });
+  };
+
+  const handleIsCommonToggle = () => {
+    setIsCommon((prev) => {
+      if (prev) setForm((p) => ({ ...p, additional_categories: [] }));
+      return !prev;
+    });
   };
 
   return createPortal(
@@ -120,7 +162,7 @@ function Modal({ item, categories, onClose, onSave }) {
                 <select
                   className="w-full appearance-none border border-indigo-200 rounded-xl px-4 py-3 pl-8 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-medium bg-indigo-50/40 focus:bg-white transition-colors pr-10"
                   value={form.category}
-                  onChange={set('category')}
+                  onChange={handlePrimarySubCatChange}
                 >
                   <option value="">Select a sub-category...</option>
                   {subCategories.map((c) => (
@@ -128,6 +170,47 @@ function Modal({ item, categories, onClose, onSave }) {
                   ))}
                 </select>
                 <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+              </div>
+            )}
+
+            {/* Common dua checkbox — only show when a primary sub-category is selected and other subs exist */}
+            {selectedMainCat && hasSubCategories && form.category && otherSubCategories.length > 0 && (
+              <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4 space-y-3">
+                <label className="flex items-center gap-3 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={isCommon}
+                    onChange={handleIsCommonToggle}
+                    className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 accent-indigo-600 cursor-pointer"
+                  />
+                  <div className="flex items-center gap-2">
+                    <Layers size={14} className="text-indigo-500" />
+                    <span className="text-sm font-bold text-slate-700">This dua appears in multiple sub-categories</span>
+                  </div>
+                </label>
+
+                {isCommon && (
+                  <div className="pl-7 space-y-2">
+                    <p className="text-xs text-slate-500 font-medium mb-2">Select the additional sub-categories for this dua:</p>
+                    {otherSubCategories.map((c) => {
+                      const cId = c._id || c.id;
+                      const checked = form.additional_categories.includes(cId);
+                      return (
+                        <label key={cId} className="flex items-center gap-3 cursor-pointer select-none group">
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={() => handleAdditionalCatToggle(cId)}
+                            className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 accent-indigo-600 cursor-pointer"
+                          />
+                          <span className={`text-sm font-medium transition-colors ${checked ? 'text-indigo-700' : 'text-slate-600 group-hover:text-slate-800'}`}>
+                            {c.name}
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             )}
 
@@ -269,7 +352,9 @@ function ViewModal({ item, onClose }) {
             </div>
             {item.category && (
               <div>
-                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Category</h3>
+                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
+                  {item.additional_categories?.length ? 'Primary Category' : 'Category'}
+                </h3>
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
                   <Tag size={11} />
                   {item.category.name || item.category}
@@ -277,6 +362,23 @@ function ViewModal({ item, onClose }) {
                     <span className="text-indigo-400 font-normal">({item.category.parent?.name || ''})</span>
                   )}
                 </span>
+                {item.additional_categories?.length > 0 && (
+                  <div className="mt-2 space-y-1">
+                    <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Also in</h3>
+                    <div className="flex flex-wrap gap-1.5">
+                      {item.additional_categories.map((ac) => {
+                        const acId = ac?._id || ac?.id || ac;
+                        const acName = ac?.name || acId;
+                        return (
+                          <span key={acId} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-violet-50 text-violet-700 border border-violet-200">
+                            <Layers size={10} />
+                            {acName}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
             {item.count !== undefined && (
@@ -290,7 +392,7 @@ function ViewModal({ item, onClose }) {
             <div>
               <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Arabic Text</h3>
               <div className="bg-indigo-50/30 p-4 rounded-xl border border-indigo-100/50">
-                <p className="text-right text-slate-800 text-2xl font-arabic leading-[2.2] tracking-wide" dir="rtl">{item.arabic_text}</p>
+                <p className="text-right text-slate-800 text-2xl font-arabic leading-[2.2] tracking-wide whitespace-pre-wrap" dir="rtl">{item.arabic_text}</p>
               </div>
             </div>
           )}
@@ -299,7 +401,7 @@ function ViewModal({ item, onClose }) {
               item[key] ? (
                 <div key={key}>
                   <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">{label}</h3>
-                  <p className="text-slate-700 bg-slate-50 px-4 py-3 rounded-xl border border-slate-100 text-sm leading-relaxed min-h-[80px]">{item[key]}</p>
+                  <p className="text-slate-700 bg-slate-50 px-4 py-3 rounded-xl border border-slate-100 text-sm leading-relaxed min-h-[80px] whitespace-pre-wrap">{item[key]}</p>
                 </div>
               ) : null
             )}
@@ -309,7 +411,7 @@ function ViewModal({ item, onClose }) {
               <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Description</h3>
               {item.description.arabic && (
                 <div className="bg-indigo-50/30 p-4 rounded-xl border border-indigo-100/50">
-                  <p className="text-right text-slate-800 text-xl font-arabic leading-[2.2] tracking-wide" dir="rtl">{item.description.arabic}</p>
+                  <p className="text-right text-slate-800 text-xl font-arabic leading-[2.2] tracking-wide whitespace-pre-wrap" dir="rtl">{item.description.arabic}</p>
                 </div>
               )}
               <div className="space-y-4">
@@ -317,7 +419,7 @@ function ViewModal({ item, onClose }) {
                   item.description[key] ? (
                     <div key={key}>
                       <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">{label}</h4>
-                      <p className="text-slate-700 bg-slate-50 px-4 py-3 rounded-xl border border-slate-100 text-sm leading-relaxed min-h-[80px]">{item.description[key]}</p>
+                      <p className="text-slate-700 bg-slate-50 px-4 py-3 rounded-xl border border-slate-100 text-sm leading-relaxed min-h-[80px] whitespace-pre-wrap">{item.description[key]}</p>
                     </div>
                   ) : null
                 )}
@@ -543,10 +645,18 @@ export default function DuasManagement() {
                       </td>
                       <td className="px-6 py-4">
                         {dua.category ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
-                            <Tag size={10} />
-                            {dua.category.name || dua.category}
-                          </span>
+                          <div className="flex flex-col gap-1">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                              <Tag size={10} />
+                              {dua.category.name || dua.category}
+                            </span>
+                            {dua.additional_categories?.length > 0 && (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-violet-50 text-violet-600 border border-violet-200">
+                                <Layers size={10} />
+                                +{dua.additional_categories.length} more
+                              </span>
+                            )}
+                          </div>
                         ) : (
                           <span className="text-slate-400">—</span>
                         )}
