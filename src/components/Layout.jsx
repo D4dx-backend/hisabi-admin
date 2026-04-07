@@ -112,7 +112,7 @@ export default function Layout({ children }) {
             <div className="p-1.5 bg-slate-50 rounded-xl border border-slate-100 group-hover:bg-white group-hover:shadow-sm transition-all">
               <img src="/color.png" alt="Hisabi Logo" className="h-8 w-8 object-contain" />
             </div>
-            <span className="text-xl font-black font-display tracking-tight text-slate-800 group-hover:text-emerald-600 transition-colors">Hisabi</span>
+            <span className="text-xl font-black font-display tracking-tight text-slate-800 group-hover:text-emerald-600 transition-colors">Hisaabi</span>
           </NavLink>
           <button onClick={closeSidebar} className="lg:hidden p-2 text-slate-400 hover:bg-slate-50 rounded-lg">
             <X size={20} />
