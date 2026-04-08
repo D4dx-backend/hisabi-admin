@@ -6,15 +6,15 @@ import { Plus, Pencil, Trash2, X, BookHeart, Save, AlignLeft, Eye, Search } from
 import { adminApi } from '../api/adminApi';
 import ConfirmationModal from '../components/ConfirmationModal';
 import SuccessModal from '../components/SuccessModal';
+import AutoGrowTextarea from '../components/AutoGrowTextarea';
 
 const EMPTY_DESC = { malayalam: '', english: '', urdu: '' };
-const EMPTY = { dua: '', description: { ...EMPTY_DESC } };
+const EMPTY = { description: { ...EMPTY_DESC } };
 
 function Modal({ item, onClose, onSave }) {
   const [form, setForm] = useState(
     item ? { ...item, description: { ...EMPTY_DESC, ...(item.description || {}) } } : EMPTY
   );
-  const set = (k) => (e) => setForm((p) => ({ ...p, [k]: e.target.value }));
   const setDesc = (k) => (e) => setForm((p) => ({ ...p, description: { ...p.description, [k]: e.target.value } }));
 
   return createPortal(
@@ -37,36 +37,25 @@ function Modal({ item, onClose, onSave }) {
         </div>
 
         <div className="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-5">
-          <div>
-            <label className="flex items-center gap-1.5 text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
-              <AlignLeft size={14} /> Dua (Arabic) <span className="text-red-500">*</span>
-            </label>
-            <textarea
-              rows={3}
-              dir="rtl"
-              className="w-full border border-slate-200 rounded-xl px-4 py-3 text-xl leading-loose font-arabic focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-indigo-50/30 focus:bg-white transition-colors resize-none placeholder-slate-300"
-              value={form.dua}
-              onChange={set('dua')}
-              placeholder="اللهم..."
-            />
-          </div>
-
-          <div className="pt-4 border-t border-slate-100 space-y-4">
+          <div className="space-y-4">
             <p className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
               <AlignLeft size={14} /> Description
             </p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-4">
               {[
-                { key: 'malayalam', label: 'Malayalam' },
-                { key: 'english', label: 'English' },
-                { key: 'urdu', label: 'Urdu' },
-              ].map(({ key, label }) => (
+                { key: 'malayalam', label: 'Malayalam', required: true },
+                { key: 'english', label: 'English', required: false },
+                { key: 'urdu', label: 'Urdu', required: false },
+              ].map(({ key, label, required }) => (
                 <div key={key}>
-                  <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">{label}</label>
-                  <textarea
-                    rows={4}
-                    className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-medium bg-slate-50 focus:bg-white transition-colors resize-none"
-                    value={form.description[key]}
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">
+                    {label}
+                    {required && <span className="text-red-500 ml-0.5">*</span>}
+                  </label>
+                  <AutoGrowTextarea
+                    minRows={3}
+                    className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-medium bg-slate-50 focus:bg-white transition-colors"
+                    value={form.description[key] ?? ''}
                     onChange={setDesc(key)}
                   />
                 </div>
@@ -113,26 +102,18 @@ function ViewModal({ item, onClose }) {
             <X size={20} />
           </button>
         </div>
-        <div className="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-6">
-          <div>
-            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Dua</h3>
-            <div className="bg-indigo-50/30 p-4 rounded-xl border border-indigo-100/50">
-              <p className="text-right text-slate-800 text-2xl font-arabic leading-[2.2] tracking-wide" dir="rtl">{item.dua}</p>
-            </div>
-          </div>
-          {item.description && (item.description.malayalam || item.description.english || item.description.urdu) && (
-            <div className="space-y-3">
+        <div className="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-4">
+          {item.description && (
+            <div className="space-y-4">
               <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Description</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {[{ key: 'malayalam', label: 'Malayalam' }, { key: 'english', label: 'English' }, { key: 'urdu', label: 'Urdu' }].map(({ key, label }) =>
-                  item.description[key] ? (
-                    <div key={key}>
-                      <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">{label}</h4>
-                      <p className="text-slate-700 bg-slate-50 px-3 py-2 rounded-lg border border-slate-100 text-sm leading-relaxed">{item.description[key]}</p>
-                    </div>
-                  ) : null
-                )}
-              </div>
+              {[{ key: 'malayalam', label: 'Malayalam' }, { key: 'english', label: 'English' }, { key: 'urdu', label: 'Urdu' }].map(({ key, label }) =>
+                item.description[key] ? (
+                  <div key={key}>
+                    <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">{label}</h4>
+                    <div className="text-slate-700 bg-slate-50 px-4 py-3 rounded-xl border border-slate-100 text-sm leading-relaxed min-h-[80px] whitespace-pre-wrap resize-y overflow-auto">{item.description[key]}</div>
+                  </div>
+                ) : null
+              )}
             </div>
           )}
         </div>
@@ -194,6 +175,10 @@ export default function DuaImportancePage() {
   });
 
   const handleSave = (form) => {
+    if (!form.description?.malayalam?.trim()) {
+      toast.error('Malayalam description is required');
+      return;
+    }
     if (modal === 'create') createMutation.mutate(form);
     else updateMutation.mutate({ id: modal.id, data: form });
   };
@@ -201,9 +186,10 @@ export default function DuaImportancePage() {
   const allItems = data?.dua_importances || [];
   const items = allItems.filter((item) => {
     const q = search.trim().toLowerCase();
-    return !q || item.dua?.toLowerCase().includes(q) ||
+    return !q ||
       item.description?.english?.toLowerCase().includes(q) ||
-      item.description?.malayalam?.toLowerCase().includes(q);
+      item.description?.malayalam?.toLowerCase().includes(q) ||
+      item.description?.urdu?.toLowerCase().includes(q);
   });
 
   return (
@@ -231,7 +217,7 @@ export default function DuaImportancePage() {
         <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
         <input
           type="text"
-          placeholder="Search by dua or description..."
+          placeholder="Search by description..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white font-medium"
@@ -267,7 +253,7 @@ export default function DuaImportancePage() {
               <table className="w-full text-sm text-left">
                 <thead className="bg-slate-50/80 text-slate-500 text-[10px] uppercase font-bold tracking-wider border-b border-slate-100">
                   <tr>
-                    <th className="px-6 py-4">Dua</th>
+                    <th className="px-6 py-4">Malayalam</th>
                     <th className="px-6 py-4">Descriptions</th>
                     <th className="px-6 py-4 text-right">Actions</th>
                   </tr>
@@ -276,8 +262,8 @@ export default function DuaImportancePage() {
                   {items.map((item) => (
                     <tr key={item.id} onClick={() => setViewItem(item)} className="hover:bg-slate-50/80 transition-colors group cursor-pointer">
                       <td className="px-6 py-4 max-w-xs">
-                        <p className="font-arabic text-slate-700 text-lg leading-loose text-right truncate" dir="rtl">
-                          {item.dua?.length > 80 ? item.dua.substring(0, 80) + '...' : item.dua}
+                        <p className="text-slate-700 text-sm leading-relaxed truncate">
+                          {item.description?.malayalam?.length > 80 ? item.description.malayalam.substring(0, 80) + '...' : item.description?.malayalam}
                         </p>
                       </td>
                       <td className="px-6 py-4">
