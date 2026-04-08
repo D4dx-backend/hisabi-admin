@@ -9,11 +9,13 @@ import SuccessModal from '../components/SuccessModal';
 import AutoGrowTextarea from '../components/AutoGrowTextarea';
 
 const EMPTY_DESC = { malayalam: '', english: '', urdu: '' };
-const EMPTY = { description: { ...EMPTY_DESC } };
+const EMPTY = { title: '', description: { ...EMPTY_DESC } };
 
 function Modal({ item, onClose, onSave }) {
   const [form, setForm] = useState(
-    item ? { ...item, description: { ...EMPTY_DESC, ...(item.description || {}) } } : EMPTY
+    item
+      ? { ...item, title: item.title ?? '', description: { ...EMPTY_DESC, ...(item.description || {}) } }
+      : EMPTY
   );
   const setDesc = (k) => (e) => setForm((p) => ({ ...p, description: { ...p.description, [k]: e.target.value } }));
 
@@ -37,6 +39,16 @@ function Modal({ item, onClose, onSave }) {
         </div>
 
         <div className="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-5">
+          <div>
+            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Title</label>
+            <input
+              type="text"
+              className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-medium bg-slate-50 focus:bg-white transition-colors"
+              value={form.title ?? ''}
+              onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
+              placeholder="Optional title"
+            />
+          </div>
           <div className="space-y-4">
             <p className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
               <AlignLeft size={14} /> Description
@@ -54,7 +66,8 @@ function Modal({ item, onClose, onSave }) {
                   </label>
                   <AutoGrowTextarea
                     minRows={3}
-                    className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-medium bg-slate-50 focus:bg-white transition-colors"
+                    dir={key === 'urdu' ? 'rtl' : undefined}
+                    className={`w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-medium bg-slate-50 focus:bg-white transition-colors${key === 'urdu' ? ' text-right font-arabic leading-relaxed' : ''}`}
                     value={form.description[key] ?? ''}
                     onChange={setDesc(key)}
                   />
@@ -103,6 +116,12 @@ function ViewModal({ item, onClose }) {
           </button>
         </div>
         <div className="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-4">
+          {item.title?.trim() ? (
+            <div>
+              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Title</h3>
+              <div className="text-slate-800 font-semibold text-base bg-slate-50 px-4 py-3 rounded-xl border border-slate-100">{item.title}</div>
+            </div>
+          ) : null}
           {item.description && (
             <div className="space-y-4">
               <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Description</h3>
@@ -110,7 +129,12 @@ function ViewModal({ item, onClose }) {
                 item.description[key] ? (
                   <div key={key}>
                     <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">{label}</h4>
-                    <div className="text-slate-700 bg-slate-50 px-4 py-3 rounded-xl border border-slate-100 text-sm leading-relaxed min-h-[80px] whitespace-pre-wrap resize-y overflow-auto">{item.description[key]}</div>
+                    <div
+                      dir={key === 'urdu' ? 'rtl' : undefined}
+                      className={`text-slate-700 bg-slate-50 px-4 py-3 rounded-xl border border-slate-100 text-sm leading-relaxed min-h-[80px] whitespace-pre-wrap resize-y overflow-auto${key === 'urdu' ? ' text-right font-arabic' : ''}`}
+                    >
+                      {item.description[key]}
+                    </div>
                   </div>
                 ) : null
               )}
@@ -187,6 +211,7 @@ export default function VerseImportancePage() {
   const items = allItems.filter((item) => {
     const q = search.trim().toLowerCase();
     return !q ||
+      (item.title || '').toLowerCase().includes(q) ||
       item.description?.english?.toLowerCase().includes(q) ||
       item.description?.malayalam?.toLowerCase().includes(q) ||
       item.description?.urdu?.toLowerCase().includes(q);
@@ -217,7 +242,7 @@ export default function VerseImportancePage() {
         <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
         <input
           type="text"
-          placeholder="Search by description..."
+          placeholder="Search by title or description..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white font-medium"
@@ -253,6 +278,7 @@ export default function VerseImportancePage() {
               <table className="w-full text-sm text-left">
                 <thead className="bg-slate-50/80 text-slate-500 text-[10px] uppercase font-bold tracking-wider border-b border-slate-100">
                   <tr>
+                    <th className="px-6 py-4">Title</th>
                     <th className="px-6 py-4">Malayalam</th>
                     <th className="px-6 py-4">Descriptions</th>
                     <th className="px-6 py-4 text-right">Actions</th>
@@ -261,6 +287,9 @@ export default function VerseImportancePage() {
                 <tbody className="divide-y divide-slate-50">
                   {items.map((item) => (
                     <tr key={item.id} onClick={() => setViewItem(item)} className="hover:bg-slate-50/80 transition-colors group cursor-pointer">
+                      <td className="px-6 py-4 max-w-[180px]">
+                        <p className="text-slate-800 font-medium text-sm truncate">{item.title?.trim() || '—'}</p>
+                      </td>
                       <td className="px-6 py-4 max-w-xs">
                         <p className="text-slate-700 text-sm leading-relaxed truncate">
                           {item.description?.malayalam?.length > 80 ? item.description.malayalam.substring(0, 80) + '...' : item.description?.malayalam}
