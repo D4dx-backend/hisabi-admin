@@ -125,7 +125,8 @@ function Modal({ item, categories, onClose, onSave }) {
                 </label>
                 <textarea
                   rows={3}
-                  className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-medium bg-slate-50 focus:bg-white transition-colors resize-none"
+                  dir={key === 'urdu' ? 'rtl' : undefined}
+                  className={`w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-medium bg-slate-50 focus:bg-white transition-colors resize-none${key === 'urdu' ? ' text-right font-arabic leading-relaxed' : ''}`}
                   value={form[key]}
                   onChange={set(key)}
                 />
@@ -158,7 +159,8 @@ function Modal({ item, categories, onClose, onSave }) {
                   <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">{label}</label>
                   <textarea
                     rows={3}
-                    className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-medium bg-slate-50 focus:bg-white transition-colors resize-none"
+                    dir={key === 'urdu' ? 'rtl' : undefined}
+                    className={`w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-medium bg-slate-50 focus:bg-white transition-colors resize-none${key === 'urdu' ? ' text-right font-arabic leading-relaxed' : ''}`}
                     value={form.description[key]}
                     onChange={setDesc(key)}
                   />
@@ -244,7 +246,12 @@ function ViewModal({ item, onClose }) {
               item[key] ? (
                 <div key={key}>
                   <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">{label}</h3>
-                  <p className="text-slate-700 bg-slate-50 px-4 py-3 rounded-xl border border-slate-100 text-sm leading-relaxed min-h-[80px]">{item[key]}</p>
+                  <p
+                    dir={key === 'urdu' ? 'rtl' : undefined}
+                    className={`text-slate-700 bg-slate-50 px-4 py-3 rounded-xl border border-slate-100 text-sm leading-relaxed min-h-[80px] whitespace-pre-wrap${key === 'urdu' ? ' text-right font-arabic' : ''}`}
+                  >
+                    {item[key]}
+                  </p>
                 </div>
               ) : null
             )}
@@ -262,7 +269,12 @@ function ViewModal({ item, onClose }) {
                   item.description[key] ? (
                     <div key={key}>
                       <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">{label}</h4>
-                      <p className="text-slate-700 bg-slate-50 px-4 py-3 rounded-xl border border-slate-100 text-sm leading-relaxed min-h-[80px]">{item.description[key]}</p>
+                      <p
+                        dir={key === 'urdu' ? 'rtl' : undefined}
+                        className={`text-slate-700 bg-slate-50 px-4 py-3 rounded-xl border border-slate-100 text-sm leading-relaxed min-h-[80px] whitespace-pre-wrap${key === 'urdu' ? ' text-right font-arabic' : ''}`}
+                      >
+                        {item.description[key]}
+                      </p>
                     </div>
                   ) : null
                 )}
