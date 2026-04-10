@@ -115,6 +115,24 @@ export const adminApi = {
   updateDailyQuote: (id, data) => api.put(`/admin/daily-quotes/${id}`, data),
   deleteDailyQuote: (id) => api.delete(`/admin/daily-quotes/${id}`),
 
+  // ── Content Management: Hadees ──────────────────────────────────────
+  getHadeesList: (params) => api.get('/admin/hadees', { params }),
+  createHadees: (data) => api.post('/admin/hadees', data),
+  updateHadees: (id, data) => api.put(`/admin/hadees/${id}`, data),
+  deleteHadees: (id) => api.delete(`/admin/hadees/${id}`),
+
+  // ── Content Management: Hadees Categories ─────────────────────────
+  getHadeesCategories: (params) => api.get('/admin/hadees-categories', { params }),
+  createHadeesCategory: (data) => api.post('/admin/hadees-categories', data),
+  updateHadeesCategory: (id, data) => api.put(`/admin/hadees-categories/${id}`, data),
+  deleteHadeesCategory: (id) => api.delete(`/admin/hadees-categories/${id}`),
+
+  // ── Content Management: Names of Allah ────────────────────────────
+  getNamesOfAllah: (params) => api.get('/admin/names-of-allah', { params }),
+  createNameOfAllah: (data) => api.post('/admin/names-of-allah', data),
+  updateNameOfAllah: (id, data) => api.put(`/admin/names-of-allah/${id}`, data),
+  deleteNameOfAllah: (id) => api.delete(`/admin/names-of-allah/${id}`),
+
   // ── Leaderboards ───────────────────────────────────────────────────
   getDhikrTrackingStats: () => api.get('/admin/models/dhikr-tracking'),
   getDuaMemorizationStats: () => api.get('/admin/models/dua-memorization'),

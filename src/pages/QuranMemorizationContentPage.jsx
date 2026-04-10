@@ -17,6 +17,7 @@ const EMPTY = {
   arabic_text: '',
   order: 0,
   is_active: true,
+  isQuranicFont: false,
 };
 
 function Modal({ item, onClose, onSave }) {
@@ -27,6 +28,7 @@ function Modal({ item, onClose, onSave }) {
         surah_number: item.surah_number ?? '',
         ayah_from: item.ayah_from ?? '',
         ayah_to: item.ayah_to ?? '',
+        isQuranicFont: item.isQuranicFont || false,
       }
       : EMPTY
   );
@@ -45,6 +47,7 @@ function Modal({ item, onClose, onSave }) {
       arabic_text: form.arabic_text || null,
       order: toNum(form.order) ?? 0,
       is_active: form.is_active,
+      isQuranicFont: form.isQuranicFont,
     });
   };
 
@@ -172,6 +175,15 @@ function Modal({ item, onClose, onSave }) {
                 onChange={set('arabic_text')}
                 placeholder="تَبَارَكَ ٱلَّذِى بِيَدِهِ ٱلْمُلْكُ"
               />
+              <label className="flex items-center gap-3 mt-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={form.isQuranicFont}
+                  onChange={(e) => setForm((p) => ({ ...p, isQuranicFont: e.target.checked }))}
+                  className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 accent-indigo-600 cursor-pointer"
+                />
+                <span className="text-sm font-bold text-slate-600">Use Quranic Font</span>
+              </label>
             </div>
 
             {/* Order and Active state */}
@@ -257,9 +269,12 @@ function ViewModal({ item, onClose }) {
 
           {item.arabic_text && (
             <div>
-              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Arabic Text</h3>
+              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
+                Arabic Text
+                {item.isQuranicFont && <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">Quranic Font</span>}
+              </h3>
               <div className="bg-indigo-50/30 p-4 rounded-xl border border-indigo-100/50">
-                <p className="text-right text-slate-800 text-2xl font-arabic leading-[2.2] tracking-wide" dir="rtl">{item.arabic_text}</p>
+                <p className={`text-right text-slate-800 text-2xl leading-[2.2] tracking-wide ${item.isQuranicFont ? 'font-quranic' : 'font-arabic'}`} dir="rtl">{item.arabic_text}</p>
               </div>
             </div>
           )}
@@ -423,7 +438,7 @@ export default function QuranMemorizationContentPage() {
                         <span className="font-bold text-slate-800 text-base">{c.title}</span>
                         {c.description && <span className="text-xs text-slate-500">{c.description}</span>}
                         {c.arabic_text && (
-                          <span className="text-sm font-arabic text-slate-600 mt-2 block" dir="rtl">
+                          <span className={`text-sm text-slate-600 mt-2 block ${c.isQuranicFont ? 'font-quranic' : 'font-arabic'}`} dir="rtl">
                             {c.arabic_text.length > 50 ? c.arabic_text.substring(0, 50) + '...' : c.arabic_text}
                           </span>
                         )}

@@ -10,12 +10,12 @@ import Pagination from '../components/Pagination';
 
 const LIMIT = 20;
 
-const EMPTY = { name: '', category: '', count: '', arabic_text: '', malayalam: '', english: '', urdu: '' };
+const EMPTY = { name: '', category: '', count: '', arabic_text: '', malayalam: '', english: '', urdu: '', isQuranicFont: false };
 
 function Modal({ item, categories, onClose, onSave }) {
   const [form, setForm] = useState(
     item
-      ? { ...item, category: item.category?._id || item.category || '', count: item.count ?? '' }
+      ? { ...item, category: item.category?._id || item.category || '', count: item.count ?? '', isQuranicFont: item.isQuranicFont || false }
       : EMPTY
   );
   const set = (k) => (e) => setForm((p) => ({ ...p, [k]: e.target.value }));
@@ -109,6 +109,15 @@ function Modal({ item, categories, onClose, onSave }) {
               onChange={set('arabic_text')}
               placeholder="سُبْحَانَ اللّٰهِ"
             />
+            <label className="flex items-center gap-3 mt-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={form.isQuranicFont}
+                onChange={(e) => setForm((p) => ({ ...p, isQuranicFont: e.target.checked }))}
+                className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 accent-indigo-600 cursor-pointer"
+              />
+              <span className="text-sm font-bold text-slate-600">Use Quranic Font</span>
+            </label>
           </div>
 
           <div className="space-y-4 pt-4 border-t border-slate-100">
@@ -181,9 +190,12 @@ function ViewModal({ item, onClose }) {
           </div>
           {item.arabic_text && (
             <div>
-              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Arabic Text</h3>
+              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
+                Arabic Text
+                {item.isQuranicFont && <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">Quranic Font</span>}
+              </h3>
               <div className="bg-indigo-50/30 p-4 rounded-xl border border-indigo-100/50">
-                <p className="text-right text-slate-800 text-2xl font-arabic leading-[2.2] tracking-wide" dir="rtl">{item.arabic_text}</p>
+                <p className={`text-right text-slate-800 text-2xl leading-[2.2] tracking-wide ${item.isQuranicFont ? 'font-quranic' : 'font-arabic'}`} dir="rtl">{item.arabic_text}</p>
               </div>
             </div>
           )}
@@ -385,7 +397,7 @@ export default function DhikrTypesManagement() {
                         ) : <span className="text-slate-400">—</span>}
                       </td>
                       <td className="px-6 py-4 text-right">
-                        {t.arabic_text ? <span className="font-arabic text-slate-700 text-lg" dir="rtl">{t.arabic_text}</span> : <span className="text-slate-400">—</span>}
+                        {t.arabic_text ? <span className={`text-slate-700 text-lg ${t.isQuranicFont ? 'font-quranic' : 'font-arabic'}`} dir="rtl">{t.arabic_text}</span> : <span className="text-slate-400">—</span>}
                       </td>
                       <td className="px-6 py-4">
                         {t.count != null ? <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">{t.count}</span> : <span className="text-slate-400">—</span>}
