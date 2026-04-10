@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Users, UsersRound, ScrollText, LogOut,
   BookOpen, Sparkles, Moon, Activity, HandHeart,
   Flame, BookMarked, BookCheck, BookOpenCheck, TrendingUp,
-  LibraryBig, GraduationCap, Menu, X, Tag, Quote
+  LibraryBig, GraduationCap, Menu, X, Tag, Quote, Star
 } from 'lucide-react';
 import ConfirmationModal from './ConfirmationModal';
 
@@ -29,6 +29,9 @@ const contentNav = [
   { to: '/content/dhikr-importance', label: 'Dhikr Importance', Icon: Sparkles },
   { to: '/content/dua-importance', label: 'Dua Importance', Icon: BookOpen },
   { to: '/content/daily-quotes', label: 'Daily Quotes', Icon: Quote },
+  { to: '/content/hadees', label: 'Hadees', Icon: BookOpen },
+  { to: '/content/hadees-categories', label: 'Hadees Categories', Icon: Tag },
+  { to: '/content/names-of-allah', label: 'Names of Allah', Icon: Star },
 ];
 
 const trackingNav = [
