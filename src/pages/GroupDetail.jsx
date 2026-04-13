@@ -69,8 +69,7 @@ export default function GroupDetail() {
     </div>
   );
 
-  const { group, default_activities = [] } = data || {};
-  const members = group?.users || [];
+  const { group, members: membersList = [], activities = [] } = data || {};
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
@@ -130,15 +129,15 @@ export default function GroupDetail() {
           {/* Group Stats */}
           <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
             <h2 className="font-bold text-slate-800 text-lg font-display mb-4">Quick Stats</h2>
-            <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-3">
               <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 text-center">
                 <Users size={20} className="mx-auto text-blue-500 mb-2" />
-                <p className="text-2xl font-black text-slate-800">{members.length}</p>
+                <p className="text-2xl font-black text-slate-800">{membersList.length}</p>
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Members</p>
               </div>
               <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 text-center">
                 <Activity size={20} className="mx-auto text-emerald-500 mb-2" />
-                <p className="text-2xl font-black text-slate-800">{default_activities.length}</p>
+                <p className="text-2xl font-black text-slate-800">{activities.length}</p>
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Activities</p>
               </div>
             </div>
@@ -154,28 +153,29 @@ export default function GroupDetail() {
               <div className="p-1.5 bg-brand-50 rounded-lg text-brand-600">
                 <CheckCircle2 size={18} />
               </div>
-              <h2 className="font-bold text-slate-800 text-lg font-display">Default Activities</h2>
+              <h2 className="font-bold text-slate-800 text-lg font-display">Group Activities</h2>
             </div>
 
-            {default_activities.length === 0 ? (
+            {activities.length === 0 ? (
               <div className="text-center py-8 opacity-50 border-2 border-dashed border-slate-200 rounded-xl">
-                <p className="font-medium text-slate-500">No default activities defined for this group.</p>
+                <p className="font-medium text-slate-500">No activities defined for this group.</p>
               </div>
             ) : (
               <div className="grid gap-3 sm:grid-cols-2">
-                {default_activities.map((a) => (
+                {activities.map((a) => (
                   <div key={a._id} className="p-4 rounded-xl border border-slate-100 bg-slate-50 hover:bg-white hover:shadow-sm transition-all group/act">
                     <div className="flex justify-between items-start mb-2">
                       <span className="font-bold text-slate-700 font-display group-hover/act:text-brand-600 transition-colors">
-                        {a.title}
+                        {a.activity_name}
                       </span>
-                      <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border ${activityTypeColors[a.frequency] || 'bg-slate-100 text-slate-500'}`}>
-                        {a.frequency}
+                      <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border ${activityTypeColors[a.activity_type] || 'bg-slate-100 text-slate-500'}`}>
+                        {a.activity_type}
                       </span>
                     </div>
                     {a.description && <p className="text-xs text-slate-500">{a.description}</p>}
                     <div className="flex gap-2 mt-3 flex-wrap">
-                      {a.points && <span className="bg-amber-100 text-amber-700 text-[10px] px-2 py-0.5 rounded-full font-bold">💎 {a.points} pts</span>}
+                      {a.date && <span className="bg-blue-50 text-blue-600 text-[10px] px-2 py-0.5 rounded-full font-bold">{new Date(a.date).toLocaleDateString()}</span>}
+                      {a.user_status && <span className="bg-emerald-50 text-emerald-600 text-[10px] px-2 py-0.5 rounded-full font-bold">{a.user_status.filter(s => s.status).length}/{a.user_status.length} responded</span>}
                     </div>
                   </div>
                 ))}
@@ -191,11 +191,11 @@ export default function GroupDetail() {
                 <h2 className="font-bold text-slate-800 text-lg font-display">Group Members</h2>
               </div>
               <span className="text-xs font-bold uppercase tracking-wider bg-white px-3 py-1.5 rounded-lg border border-slate-200 text-slate-500 shadow-sm">
-                Total: {members.length}
+                Total: {membersList.length}
               </span>
             </div>
 
-            {members.length === 0 ? (
+            {membersList.length === 0 ? (
               <div className="text-center py-10 opacity-50">
                 <p className="font-medium text-slate-500">No members in this group yet.</p>
               </div>
@@ -210,7 +210,7 @@ export default function GroupDetail() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-50">
-                    {members.map((u) => {
+                    {membersList.map((u) => {
                       const isAdmin = group?.admin_id?._id === u._id;
                       return (
                         <tr key={u._id} className="hover:bg-slate-50/80 transition-colors cursor-pointer" onClick={() => navigate(`/users/${u._id}`)}>

@@ -13,6 +13,7 @@ const mainNav = [
   { to: '/', label: 'Dashboard', Icon: LayoutDashboard },
   { to: '/users', label: 'Users', Icon: Users },
   { to: '/groups', label: 'Groups', Icon: UsersRound },
+  { to: '/group-activities', label: 'Group Activities', Icon: Activity },
   { to: '/activity-logs', label: 'Activity Logs', Icon: ScrollText },
 ];
 
