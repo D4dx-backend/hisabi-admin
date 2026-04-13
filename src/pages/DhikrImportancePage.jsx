@@ -8,16 +8,34 @@ import ConfirmationModal from '../components/ConfirmationModal';
 import SuccessModal from '../components/SuccessModal';
 import AutoGrowTextarea from '../components/AutoGrowTextarea';
 
-const EMPTY_DESC = { malayalam: '', english: '', urdu: '' };
-const EMPTY = { title: '', description: { ...EMPTY_DESC } };
+const EMPTY_TRILINGUAL = { malayalam: '', english: '', urdu: '' };
+const EMPTY = { title: { ...EMPTY_TRILINGUAL }, description: { ...EMPTY_TRILINGUAL } };
+
+const LANG_FIELDS = [
+  { key: 'malayalam', label: 'Malayalam', required: true },
+  { key: 'english',   label: 'English',   required: false },
+  { key: 'urdu',      label: 'Urdu',      required: false },
+];
+
+function normTitle(raw) {
+  if (!raw || typeof raw !== 'object') {
+    return { malayalam: typeof raw === 'string' ? raw : '', english: '', urdu: '' };
+  }
+  return { malayalam: raw.malayalam ?? '', english: raw.english ?? '', urdu: raw.urdu ?? '' };
+}
 
 function Modal({ item, onClose, onSave }) {
   const [form, setForm] = useState(
     item
-      ? { ...item, title: item.title ?? '', description: { ...EMPTY_DESC, ...(item.description || {}) } }
+      ? {
+          ...item,
+          title: normTitle(item.title),
+          description: { ...EMPTY_TRILINGUAL, ...(item.description || {}) },
+        }
       : EMPTY
   );
-  const setDesc = (k) => (e) => setForm((p) => ({ ...p, description: { ...p.description, [k]: e.target.value } }));
+  const setTitle = (k) => (e) => setForm((p) => ({ ...p, title: { ...p.title, [k]: e.target.value } }));
+  const setDesc  = (k) => (e) => setForm((p) => ({ ...p, description: { ...p.description, [k]: e.target.value } }));
 
   return createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-0">
@@ -39,26 +57,35 @@ function Modal({ item, onClose, onSave }) {
         </div>
 
         <div className="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-5">
-          <div>
-            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Title</label>
-            <input
-              type="text"
-              className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-medium bg-slate-50 focus:bg-white transition-colors"
-              value={form.title ?? ''}
-              onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
-              placeholder="Optional title"
-            />
+          {/* Title — trilingual */}
+          <div className="space-y-4">
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+              <AlignLeft size={14} /> Title
+            </p>
+            <div className="space-y-3">
+              {LANG_FIELDS.map(({ key, label }) => (
+                <div key={key}>
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">{label}</label>
+                  <input
+                    type="text"
+                    dir={key === 'urdu' ? 'rtl' : undefined}
+                    className={`w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-medium bg-slate-50 focus:bg-white transition-colors${key === 'urdu' ? ' text-right font-arabic' : ''}`}
+                    value={form.title[key] ?? ''}
+                    onChange={setTitle(key)}
+                    placeholder={`Title in ${label}`}
+                  />
+                </div>
+              ))}
+            </div>
           </div>
+
+          {/* Description — trilingual */}
           <div className="space-y-4">
             <p className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
               <AlignLeft size={14} /> Description
             </p>
             <div className="space-y-4">
-              {[
-                { key: 'malayalam', label: 'Malayalam', required: true },
-                { key: 'english', label: 'English', required: false },
-                { key: 'urdu', label: 'Urdu', required: false },
-              ].map(({ key, label, required }) => (
+              {LANG_FIELDS.map(({ key, label, required }) => (
                 <div key={key}>
                   <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">
                     {label}
@@ -116,10 +143,23 @@ function ViewModal({ item, onClose }) {
           </button>
         </div>
         <div className="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-4">
-          {item.title?.trim() ? (
-            <div>
-              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Title</h3>
-              <div className="text-slate-800 font-semibold text-base bg-slate-50 px-4 py-3 rounded-xl border border-slate-100">{item.title}</div>
+          {/* Trilingual Title */}
+          {(item.title?.malayalam || item.title?.english || item.title?.urdu) ? (
+            <div className="space-y-3">
+              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Title</h3>
+              {[{ key: 'malayalam', label: 'Malayalam' }, { key: 'english', label: 'English' }, { key: 'urdu', label: 'Urdu' }].map(({ key, label }) =>
+                item.title?.[key]?.trim() ? (
+                  <div key={key}>
+                    <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">{label}</h4>
+                    <div
+                      dir={key === 'urdu' ? 'rtl' : undefined}
+                      className={`text-slate-800 font-semibold bg-slate-50 px-4 py-3 rounded-xl border border-slate-100 text-sm${key === 'urdu' ? ' text-right font-arabic' : ''}`}
+                    >
+                      {item.title[key]}
+                    </div>
+                  </div>
+                ) : null
+              )}
             </div>
           ) : null}
           {item.description && (
@@ -210,11 +250,16 @@ export default function DhikrImportancePage() {
   const allItems = data?.dhikr_importances || [];
   const items = allItems.filter((item) => {
     const q = search.trim().toLowerCase();
-    return !q ||
-      (item.title || '').toLowerCase().includes(q) ||
-      item.description?.english?.toLowerCase().includes(q) ||
+    if (!q) return true;
+    const t = item.title || {};
+    return (
+      (t.malayalam || '').toLowerCase().includes(q) ||
+      (t.english   || '').toLowerCase().includes(q) ||
+      (t.urdu      || '').toLowerCase().includes(q) ||
       item.description?.malayalam?.toLowerCase().includes(q) ||
-      item.description?.urdu?.toLowerCase().includes(q);
+      item.description?.english?.toLowerCase().includes(q) ||
+      item.description?.urdu?.toLowerCase().includes(q)
+    );
   });
 
   return (
@@ -287,8 +332,11 @@ export default function DhikrImportancePage() {
                 <tbody className="divide-y divide-slate-50">
                   {items.map((item) => (
                     <tr key={item.id} onClick={() => setViewItem(item)} className="hover:bg-slate-50/80 transition-colors group cursor-pointer">
-                      <td className="px-6 py-4 max-w-[180px]">
-                        <p className="text-slate-800 font-medium text-sm truncate">{item.title?.trim() || '—'}</p>
+                      <td className="px-6 py-4 max-w-[200px]">
+                        <p className="text-slate-800 font-medium text-sm truncate">{item.title?.malayalam?.trim() || item.title?.english?.trim() || '—'}</p>
+                        {item.title?.english?.trim() && item.title?.malayalam?.trim() && (
+                          <p className="text-slate-400 text-xs truncate mt-0.5">{item.title.english}</p>
+                        )}
                       </td>
                       <td className="px-6 py-4 max-w-xs">
                         <p className="text-slate-700 text-sm leading-relaxed truncate">
