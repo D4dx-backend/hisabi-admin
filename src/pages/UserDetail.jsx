@@ -103,7 +103,7 @@ export default function UserDetail() {
   const { user, streaks = [], recent_activity = [] } = data || {};
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
+    <div className="max-w-5xl mx-auto w-full flex-1 flex flex-col min-h-0 gap-6">
 
       {/* Header & Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">

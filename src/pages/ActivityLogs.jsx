@@ -63,7 +63,7 @@ export default function ActivityLogs() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <div className="max-w-7xl mx-auto w-full flex-1 flex flex-col min-h-0 gap-6">
       <div>
         <h1 className="text-3xl font-bold text-slate-800 font-display flex items-center gap-3 tracking-tight">
           <div className="p-2.5 bg-indigo-100 text-indigo-600 rounded-xl shadow-sm border border-indigo-200/50">

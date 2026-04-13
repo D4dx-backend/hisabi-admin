@@ -52,7 +52,7 @@ export default function GroupActivitiesPage() {
   const total = data?.total || 0;
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <div className="max-w-7xl mx-auto w-full flex-1 flex flex-col min-h-0 gap-6">
       <div>
         <h1 className="text-3xl font-bold text-slate-800 font-display flex items-center gap-3 tracking-tight">
           <div className="p-2.5 bg-emerald-100 text-emerald-600 rounded-xl shadow-sm border border-emerald-200/50">
