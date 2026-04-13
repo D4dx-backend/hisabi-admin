@@ -31,6 +31,9 @@ import HadeesManagement from './pages/HadeesManagement';
 import HadeesCategoriesManagement from './pages/HadeesCategoriesManagement';
 import NamesOfAllahManagement from './pages/NamesOfAllahManagement';
 
+// Group Activities
+import GroupActivitiesPage from './pages/GroupActivitiesPage';
+
 // Leaderboard / Tracking Data
 import DhikrTrackingPage from './pages/DhikrTrackingPage';
 import DuaMemorizationPage from './pages/DuaMemorizationPage';
@@ -67,6 +70,7 @@ function App() {
                       <Route path="groups" element={<Groups />} />
                       <Route path="groups/:id" element={<GroupDetail />} />
                       <Route path="activity-logs" element={<ActivityLogs />} />
+                      <Route path="group-activities" element={<GroupActivitiesPage />} />
 
                       {/* Content Management */}
                       <Route path="content/duas" element={<DuasManagement />} />

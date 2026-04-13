@@ -43,6 +43,10 @@ export const adminApi = {
 
   getActivityLogs: (params) => api.get('/admin/activity-logs', { params }),
 
+  // ── Group Activities (admin) ────────────────────────────────────────
+  getGroupActivities: (params) => api.get('/admin/group-activities', { params }),
+  deleteGroupActivity: (id) => api.delete(`/admin/group-activities/${id}`),
+
   // ── Content Management: Duas ───────────────────────────────────────
   getDuas: (params) => api.get('/admin/duas', { params }),
   createDua: (data) => api.post('/admin/duas', data),
@@ -147,6 +151,9 @@ export const adminApi = {
   getPrayerTrackingRecords: (params) => api.get('/admin/models/prayer-tracking/records', { params }),
   getQuranReadingRecords: (params) => api.get('/admin/models/quran-reading/records', { params }),
   getQuranMemorizationRecords: (params) => api.get('/admin/models/quran-memorization/records', { params }),
+  getDhikrTrackingRecords: (params) => api.get('/admin/models/dhikr-tracking/records', { params }),
+  getFastingRecords: (params) => api.get('/admin/models/fasting/records', { params }),
+  getDuaMemorizationRecords: (params) => api.get('/admin/models/dua-memorization/records', { params }),
 };
 
 export default api;
