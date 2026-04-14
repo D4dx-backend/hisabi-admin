@@ -11,12 +11,12 @@ import Pagination from '../components/Pagination';
 const LIMIT = 20;
 
 const EMPTY_DESC = { arabic: '', malayalam: '', english: '', urdu: '' };
-const EMPTY = { title: '', arabic_text: '', category: '', count: '', malayalam: '', english: '', urdu: '', description: { ...EMPTY_DESC }, isQuranicFont: false };
+const EMPTY = { title: '', arabic_text: '', category: '', count: '', isCountless: false, malayalam: '', english: '', urdu: '', description: { ...EMPTY_DESC }, isQuranicFont: false };
 
 function Modal({ item, categories, onClose, onSave }) {
   const [form, setForm] = useState(
     item
-      ? { ...item, category: item.category?._id || item.category || '', description: { ...EMPTY_DESC, ...(item.description || {}) }, isQuranicFont: item.isQuranicFont || false }
+      ? { ...item, category: item.category?._id || item.category || '', description: { ...EMPTY_DESC, ...(item.description || {}) }, isQuranicFont: item.isQuranicFont || false, isCountless: item.isCountless || false }
       : EMPTY
   );
   const set = (k) => (e) => setForm((p) => ({ ...p, [k]: e.target.value }));
@@ -110,16 +110,26 @@ function Modal({ item, categories, onClose, onSave }) {
 
           <div className="pt-4 border-t border-slate-100">
             <label className="flex items-center gap-1.5 text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
-              <FileText size={14} /> Count <span className="text-red-500">*</span>
+              <FileText size={14} /> Count {!form.isCountless && <span className="text-red-500">*</span>}
             </label>
             <input
               type="number"
               min="1"
-              className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-medium bg-slate-50 focus:bg-white transition-colors"
-              value={form.count}
+              disabled={form.isCountless}
+              className={`w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-medium transition-colors ${form.isCountless ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-slate-50 focus:bg-white'}`}
+              value={form.isCountless ? '' : form.count}
               onChange={set('count')}
-              placeholder="e.g. 33"
+              placeholder={form.isCountless ? 'As much as you can' : 'e.g. 33'}
             />
+            <label className="flex items-center gap-3 mt-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={form.isCountless}
+                onChange={(e) => setForm((p) => ({ ...p, isCountless: e.target.checked, count: e.target.checked ? '' : p.count }))}
+                className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 accent-indigo-600 cursor-pointer"
+              />
+              <span className="text-sm font-bold text-slate-600">As much as you can (Countless)</span>
+            </label>
           </div>
 
           <div className="space-y-4 pt-4 border-t border-slate-100">
@@ -235,10 +245,14 @@ function ViewModal({ item, onClose }) {
                 </span>
               </div>
             )}
-            {item.count !== undefined && (
+            {(item.isCountless || item.count != null) && (
               <div>
                 <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Count</h3>
-                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">{item.count}</span>
+                {item.isCountless ? (
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-violet-50 text-violet-700 border border-violet-200">∞ As much as you can</span>
+                ) : (
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">{item.count}</span>
+                )}
               </div>
             )}
           </div>
@@ -479,7 +493,11 @@ export default function ThasbeehsManagement() {
                         {t.arabic_text ? <span className={`text-slate-700 text-lg leading-loose ${t.isQuranicFont ? 'font-quranic' : 'font-arabic'}`} dir="rtl">{t.arabic_text.length > 60 ? t.arabic_text.substring(0, 60) + '...' : t.arabic_text}</span> : <span className="text-slate-400">—</span>}
                       </td>
                       <td className="px-6 py-4">
-                        {t.count !== undefined ? <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">{t.count}</span> : <span className="text-slate-400">—</span>}
+                        {t.isCountless ? (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-violet-50 text-violet-700 border border-violet-200">∞ Countless</span>
+                        ) : t.count != null ? (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">{t.count}</span>
+                        ) : <span className="text-slate-400">—</span>}
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex flex-wrap gap-1.5">
