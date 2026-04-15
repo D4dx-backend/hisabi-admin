@@ -9,7 +9,7 @@ import SuccessModal from '../components/SuccessModal';
 import AutoGrowTextarea from '../components/AutoGrowTextarea';
 
 const EMPTY_TRILINGUAL = { malayalam: '', english: '', urdu: '' };
-const EMPTY = { title: { ...EMPTY_TRILINGUAL }, description: { ...EMPTY_TRILINGUAL } };
+const EMPTY = { title: { ...EMPTY_TRILINGUAL }, description: { ...EMPTY_TRILINGUAL }, source: '' };
 
 const LANG_FIELDS = [
   { key: 'malayalam', label: 'Malayalam', required: true },
@@ -31,11 +31,13 @@ function Modal({ item, onClose, onSave }) {
           ...item,
           title: normTitle(item.title),
           description: { ...EMPTY_TRILINGUAL, ...(item.description || {}) },
+          source: item.source ?? '',
         }
       : EMPTY
   );
-  const setTitle = (k) => (e) => setForm((p) => ({ ...p, title: { ...p.title, [k]: e.target.value } }));
-  const setDesc  = (k) => (e) => setForm((p) => ({ ...p, description: { ...p.description, [k]: e.target.value } }));
+  const setTitle  = (k) => (e) => setForm((p) => ({ ...p, title: { ...p.title, [k]: e.target.value } }));
+  const setDesc   = (k) => (e) => setForm((p) => ({ ...p, description: { ...p.description, [k]: e.target.value } }));
+  const setSource = (e) => setForm((p) => ({ ...p, source: e.target.value }));
 
   return createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-0">
@@ -101,6 +103,21 @@ function Modal({ item, onClose, onSave }) {
                 </div>
               ))}
             </div>
+          </div>
+
+          {/* Source — Arabic */}
+          <div className="space-y-2">
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+              <AlignLeft size={14} /> Source
+            </p>
+            <input
+              type="text"
+              dir="rtl"
+              className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-medium bg-slate-50 focus:bg-white transition-colors text-right font-arabic"
+              value={form.source ?? ''}
+              onChange={setSource}
+              placeholder="المصدر"
+            />
           </div>
         </div>
 
@@ -178,6 +195,14 @@ function ViewModal({ item, onClose }) {
                   </div>
                 ) : null
               )}
+            </div>
+          )}
+          {item.source?.trim() && (
+            <div className="space-y-2">
+              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Source</h3>
+              <div dir="rtl" className="text-slate-800 font-semibold bg-slate-50 px-4 py-3 rounded-xl border border-slate-100 text-sm text-right font-arabic leading-relaxed">
+                {item.source}
+              </div>
             </div>
           )}
         </div>
