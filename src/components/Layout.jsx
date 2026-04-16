@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Users, UsersRound, ScrollText, LogOut,
   BookOpen, Sparkles, Moon, Activity, HandHeart,
   Flame, BookMarked, BookCheck, BookOpenCheck, TrendingUp,
-  LibraryBig, GraduationCap, Menu, X, Tag, Quote, Star
+  LibraryBig, GraduationCap, Menu, X, Tag, Quote, Star, Radio
 } from 'lucide-react';
 import ConfirmationModal from './ConfirmationModal';
 
@@ -33,6 +33,7 @@ const contentNav = [
   { to: '/content/hadees', label: 'Hadees', Icon: BookOpen },
   { to: '/content/hadees-categories', label: 'Hadees Categories', Icon: Tag },
   { to: '/content/names-of-allah', label: 'Names of Allah', Icon: Star },
+  { to: '/content/live-links', label: 'Live Links', Icon: Radio },
 ];
 
 const trackingNav = [

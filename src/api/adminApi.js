@@ -137,6 +137,12 @@ export const adminApi = {
   updateNameOfAllah: (id, data) => api.put(`/admin/names-of-allah/${id}`, data),
   deleteNameOfAllah: (id) => api.delete(`/admin/names-of-allah/${id}`),
 
+  // ── Content Management: Live Links ────────────────────────────────
+  getLiveLinks: (params) => api.get('/admin/live-links', { params }),
+  createLiveLink: (data) => api.post('/admin/live-links', data),
+  updateLiveLink: (id, data) => api.put(`/admin/live-links/${id}`, data),
+  deleteLiveLink: (id) => api.delete(`/admin/live-links/${id}`),
+
   // ── Leaderboards ───────────────────────────────────────────────────
   getDhikrTrackingStats: () => api.get('/admin/models/dhikr-tracking'),
   getDuaMemorizationStats: () => api.get('/admin/models/dua-memorization'),

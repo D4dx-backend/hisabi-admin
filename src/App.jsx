@@ -30,6 +30,7 @@ import DailyQuotesManagement from './pages/DailyQuotesManagement';
 import HadeesManagement from './pages/HadeesManagement';
 import HadeesCategoriesManagement from './pages/HadeesCategoriesManagement';
 import NamesOfAllahManagement from './pages/NamesOfAllahManagement';
+import LiveLinksManagement from './pages/LiveLinksManagement';
 
 // Group Activities
 import GroupActivitiesPage from './pages/GroupActivitiesPage';
@@ -88,6 +89,7 @@ function App() {
                       <Route path="content/hadees" element={<HadeesManagement />} />
                       <Route path="content/hadees-categories" element={<HadeesCategoriesManagement />} />
                       <Route path="content/names-of-allah" element={<NamesOfAllahManagement />} />
+                      <Route path="content/live-links" element={<LiveLinksManagement />} />
 
                       {/* Tracking Data / Leaderboards */}
                       <Route path="tracking/dhikr" element={<DhikrTrackingPage />} />
