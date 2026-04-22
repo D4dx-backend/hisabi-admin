@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { Plus, Pencil, Trash2, X, Star, Save, FileText, AlignLeft, Eye, Search } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, Star, Save, FileText, AlignLeft, Eye, Search, Hash } from 'lucide-react';
 import { adminApi } from '../api/adminApi';
 import ConfirmationModal from '../components/ConfirmationModal';
 import SuccessModal from '../components/SuccessModal';
@@ -10,10 +10,10 @@ import Pagination from '../components/Pagination';
 
 const LIMIT = 20;
 
-const EMPTY = { name: '', english_meaning: '', malayalam_meaning: '', urdu_meaning: '', description: '' };
+const EMPTY = { name: '', order: '', english_meaning: '', malayalam_meaning: '', urdu_meaning: '', description: '' };
 
 function Modal({ item, onClose, onSave }) {
-  const [form, setForm] = useState(item ? { ...EMPTY, ...item } : EMPTY);
+  const [form, setForm] = useState(item ? { ...EMPTY, ...item, order: item.order ?? '' } : EMPTY);
   const set = (k) => (e) => setForm((p) => ({ ...p, [k]: e.target.value }));
 
   return createPortal(
@@ -50,6 +50,22 @@ function Modal({ item, onClose, onSave }) {
               onChange={set('name')}
               placeholder="e.g. الرحمن"
             />
+          </div>
+
+          {/* Order */}
+          <div>
+            <label className="flex items-center gap-1.5 text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+              <Hash size={14} /> Order
+            </label>
+            <input
+              type="number"
+              min="1"
+              className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-medium bg-slate-50 focus:bg-white transition-colors"
+              value={form.order}
+              onChange={set('order')}
+              placeholder="e.g. 1, 2, 3..."
+            />
+            <p className="text-xs text-slate-400 mt-1">Lower number = shown first in the list</p>
           </div>
 
           {/* Meanings */}
@@ -147,6 +163,12 @@ function ViewModal({ item, onClose }) {
           </button>
         </div>
         <div className="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-6">
+          {item.order != null && (
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-indigo-50 border border-indigo-200">
+              <Hash size={13} className="text-indigo-500" />
+              <span className="text-xs font-bold text-indigo-700">Order: {item.order}</span>
+            </div>
+          )}
           {/* Name in Arabic */}
           <div>
             <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Name</h3>
@@ -340,6 +362,7 @@ export default function NamesOfAllahManagement() {
               <table className="w-full text-sm text-left">
                 <thead className="bg-slate-50/80 text-slate-500 text-[10px] uppercase font-bold tracking-wider border-b border-slate-100">
                   <tr>
+                    <th className="px-4 py-4 text-center w-12">#</th>
                     <th className="px-6 py-4 text-right">Name</th>
                     <th className="px-6 py-4">English Meaning</th>
                     <th className="px-6 py-4">Malayalam Meaning</th>
@@ -351,6 +374,13 @@ export default function NamesOfAllahManagement() {
                 <tbody className="divide-y divide-slate-50">
                   {names.map((n) => (
                     <tr key={n.id} onClick={() => setViewItem(n)} className="hover:bg-slate-50/80 transition-colors group cursor-pointer">
+                      <td className="px-4 py-4 text-center">
+                        {n.order != null ? (
+                          <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-indigo-50 text-indigo-700 text-xs font-bold border border-indigo-200">{n.order}</span>
+                        ) : (
+                          <span className="text-slate-300 text-xs">—</span>
+                        )}
+                      </td>
                       <td className="px-6 py-4 text-right">
                         <span className="font-arabic text-slate-800 text-xl leading-loose font-bold" dir="rtl">{n.name}</span>
                       </td>
