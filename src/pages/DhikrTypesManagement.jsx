@@ -13,19 +13,43 @@ const LIMIT = 20;
 const EMPTY = { name: '', category: '', count: '', isCountless: false, arabic_text: '', malayalam: '', english: '', urdu: '', isQuranicFont: false };
 
 function Modal({ item, categories, onClose, onSave }) {
+  const mainCategories = categories.filter((c) => !c.parent);
+
+  const getInitialMainCatId = () => {
+    if (!item?.category) return '';
+    const catId = item.category?._id || item.category || '';
+    const cat = categories.find((c) => (c._id || c.id) === catId);
+    if (!cat) return '';
+    if (cat.parent) return cat.parent?._id || cat.parent?.id || cat.parent || '';
+    return catId;
+  };
+
   const [form, setForm] = useState(
     item
       ? { ...item, category: item.category?._id || item.category || '', count: item.count ?? '', isCountless: item.isCountless || false, isQuranicFont: item.isQuranicFont || false }
       : EMPTY
   );
+  const [selectedMainCat, setSelectedMainCat] = useState(getInitialMainCatId);
+
   const set = (k) => (e) => setForm((p) => ({ ...p, [k]: e.target.value }));
 
-  const mainCategories = categories.filter((c) => !c.parent);
   const getSubCategories = (mainId) =>
-    categories.filter((c) => {
-      const pid = c.parent?._id || c.parent?.id || c.parent;
-      return pid === mainId;
-    });
+    mainId
+      ? categories.filter((c) => {
+          const pid = c.parent?._id || c.parent?.id || c.parent;
+          return pid && (pid === mainId || pid.toString() === mainId.toString());
+        })
+      : [];
+
+  const subCategories = getSubCategories(selectedMainCat);
+  const hasSubCategories = subCategories.length > 0;
+
+  const handleMainCatChange = (e) => {
+    const mainId = e.target.value;
+    setSelectedMainCat(mainId);
+    const subs = getSubCategories(mainId);
+    setForm((p) => ({ ...p, category: subs.length === 0 ? mainId : '' }));
+  };
 
   return createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-0">
@@ -58,7 +82,7 @@ function Modal({ item, categories, onClose, onSave }) {
         <div className="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-5">
           <div>
             <label className="flex items-center gap-1.5 text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
-              <FileText size={14} /> Name (key) <span className="text-red-500">*</span>
+              <FileText size={14} /> Name <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -69,36 +93,48 @@ function Modal({ item, categories, onClose, onSave }) {
             />
           </div>
 
-          <div>
-            <label className="flex items-center gap-1.5 text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+          {/* Category — two-level selection */}
+          <div className="space-y-3">
+            <label className="flex items-center gap-1.5 text-xs font-bold text-slate-500 uppercase tracking-wider">
               <Tag size={14} /> Category
             </label>
+
+            {/* Main category */}
             <div className="relative">
               <select
                 className="w-full appearance-none border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-medium bg-slate-50 focus:bg-white transition-colors pr-10"
-                value={form.category}
-                onChange={set('category')}
+                value={selectedMainCat}
+                onChange={handleMainCatChange}
               >
-                <option value="">No category</option>
-                {mainCategories.map((main) => {
-                  const subs = getSubCategories(main._id || main.id);
-                  return subs.length > 0 ? (
-                    <optgroup key={main._id || main.id} label={main.display_name}>
-                      {subs.map((sub) => (
-                        <option key={sub._id || sub.id} value={sub._id || sub.id}>
-                          {sub.display_name}
-                        </option>
-                      ))}
-                    </optgroup>
-                  ) : (
-                    <option key={main._id || main.id} value={main._id || main.id}>
-                      {main.display_name}
-                    </option>
-                  );
-                })}
+                <option value="">Select a category...</option>
+                {mainCategories.map((c) => (
+                  <option key={c._id || c.id} value={c._id || c.id}>{c.display_name}</option>
+                ))}
               </select>
               <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
             </div>
+
+            {/* Sub-category (only when main has sub-categories) */}
+            {selectedMainCat && hasSubCategories && (
+              <div className="relative">
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">↳</div>
+                <select
+                  className="w-full appearance-none border border-indigo-200 rounded-xl px-4 py-3 pl-8 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-medium bg-indigo-50/40 focus:bg-white transition-colors pr-10"
+                  value={form.category}
+                  onChange={set('category')}
+                >
+                  <option value="">Select a sub-category...</option>
+                  {subCategories.map((c) => (
+                    <option key={c._id || c.id} value={c._id || c.id}>{c.display_name}</option>
+                  ))}
+                </select>
+                <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+              </div>
+            )}
+
+            {categories.length === 0 && (
+              <p className="text-xs text-amber-600 font-medium">No categories found. Please add a dhikr category first.</p>
+            )}
           </div>
 
           <div>
