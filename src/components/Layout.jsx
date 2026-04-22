@@ -21,7 +21,7 @@ const contentNav = [
   { to: '/content/duas', label: 'Duas', Icon: BookOpen },
   { to: '/content/dua-categories', label: 'Dua Categories', Icon: Tag },
   { to: '/content/dhikr-categories', label: 'Dhikr Categories', Icon: Tag },
-  { to: '/content/dhikr-types', label: 'Dhikr Types', Icon: Sparkles },
+  { to: '/content/dhikr-types', label: 'Adhkar', Icon: Sparkles },
   { to: '/content/thasbeehs', label: 'Thasbeehs', Icon: Sparkles },
   { to: '/content/fasting-types', label: 'Fasting Types', Icon: Moon },
   { to: '/content/quran-reading-portions', label: 'Reading Portions', Icon: LibraryBig },
