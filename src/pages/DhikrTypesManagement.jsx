@@ -20,6 +20,13 @@ function Modal({ item, categories, onClose, onSave }) {
   );
   const set = (k) => (e) => setForm((p) => ({ ...p, [k]: e.target.value }));
 
+  const mainCategories = categories.filter((c) => !c.parent);
+  const getSubCategories = (mainId) =>
+    categories.filter((c) => {
+      const pid = c.parent?._id || c.parent?.id || c.parent;
+      return pid === mainId;
+    });
+
   return createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-0">
       {/* Backdrop */}
@@ -73,11 +80,22 @@ function Modal({ item, categories, onClose, onSave }) {
                 onChange={set('category')}
               >
                 <option value="">No category</option>
-                {categories.map((c) => (
-                  <option key={c._id || c.id} value={c._id || c.id}>
-                    {c.display_name}
-                  </option>
-                ))}
+                {mainCategories.map((main) => {
+                  const subs = getSubCategories(main._id || main.id);
+                  return subs.length > 0 ? (
+                    <optgroup key={main._id || main.id} label={main.display_name}>
+                      {subs.map((sub) => (
+                        <option key={sub._id || sub.id} value={sub._id || sub.id}>
+                          {sub.display_name}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ) : (
+                    <option key={main._id || main.id} value={main._id || main.id}>
+                      {main.display_name}
+                    </option>
+                  );
+                })}
               </select>
               <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
             </div>
@@ -256,13 +274,34 @@ export default function DhikrTypesManagement() {
   const [successState, setSuccessState] = useState({ isOpen: false, title: '', message: '' });
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [filterCategory, setFilterCategory] = useState('');
+  const [selectedMain, setSelectedMain] = useState('');
+  const [selectedSub, setSelectedSub] = useState('');
   const [page, setPage] = useState(1);
 
   useEffect(() => {
     const t = setTimeout(() => { setDebouncedSearch(search); setPage(1); }, 350);
     return () => clearTimeout(t);
   }, [search]);
+
+  const { data: catData } = useQuery({
+    queryKey: ['admin-dhikr-categories'],
+    queryFn: () => adminApi.getDhikrCategories({ limit: 200 }).then((r) => r.data),
+  });
+
+  const categories = catData?.dhikr_categories || [];
+
+  const subCategoriesForMain = selectedMain
+    ? categories.filter((c) => {
+        const pid = c.parent?._id || c.parent?.id || c.parent;
+        return pid === selectedMain;
+      })
+    : [];
+  const hasSubsForMain = subCategoriesForMain.length > 0;
+  const filterCategory = selectedSub
+    ? selectedSub
+    : selectedMain && !hasSubsForMain
+    ? selectedMain
+    : '';
 
   const { data, isLoading, isFetching } = useQuery({
     queryKey: ['admin-dhikr-types', page, filterCategory, debouncedSearch],
@@ -272,11 +311,6 @@ export default function DhikrTypesManagement() {
       ...(filterCategory && { category: filterCategory }),
       ...(debouncedSearch && { search: debouncedSearch }),
     }).then((r) => r.data),
-  });
-
-  const { data: catData } = useQuery({
-    queryKey: ['admin-dhikr-categories'],
-    queryFn: () => adminApi.getDhikrCategories({ limit: 200 }).then((r) => r.data),
   });
 
   const createMutation = useMutation({
@@ -317,12 +351,13 @@ export default function DhikrTypesManagement() {
     else updateMutation.mutate({ id: modal.id, data: form });
   };
 
-  const handleCategoryFilter = (val) => { setFilterCategory(val); setPage(1); };
+  const handleMainChange = (val) => { setSelectedMain(val); setSelectedSub(''); setPage(1); };
+  const handleSubChange = (val) => { setSelectedSub(val); setPage(1); };
 
   const types = data?.dhikr_types || [];
   const total = data?.total ?? 0;
   const totalPages = data?.total_pages ?? 1;
-  const categories = catData?.dhikr_categories || [];
+  const mainCategoriesForFilter = categories.filter((c) => !c.parent);
 
   return (
     <div className="max-w-7xl mx-auto w-full flex-1 flex flex-col min-h-0 gap-6">
@@ -349,7 +384,7 @@ export default function DhikrTypesManagement() {
       </div>
 
       {/* Search & Filter */}
-      <div className="flex flex-col sm:flex-row gap-3">
+      <div className="flex flex-col sm:flex-row gap-3 flex-wrap">
         <div className="relative flex-1 max-w-md">
           <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
@@ -360,20 +395,36 @@ export default function DhikrTypesManagement() {
             className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white font-medium"
           />
         </div>
-        <div className="relative min-w-[220px]">
+        <div className="relative min-w-[200px]">
           <Tag size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <select
-            value={filterCategory}
-            onChange={(e) => handleCategoryFilter(e.target.value)}
+            value={selectedMain}
+            onChange={(e) => handleMainChange(e.target.value)}
             className="w-full appearance-none pl-9 pr-8 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white font-medium"
           >
             <option value="">All Categories</option>
-            {categories.map((c) => (
+            {mainCategoriesForFilter.map((c) => (
               <option key={c._id || c.id} value={c._id || c.id}>{c.display_name}</option>
             ))}
           </select>
           <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
         </div>
+        {selectedMain && hasSubsForMain && (
+          <div className="relative min-w-[200px]">
+            <ChevronDown size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-indigo-400" />
+            <select
+              value={selectedSub}
+              onChange={(e) => handleSubChange(e.target.value)}
+              className="w-full appearance-none pl-9 pr-8 py-2.5 border border-indigo-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-indigo-50 font-medium text-indigo-700"
+            >
+              <option value="">All Sub-categories</option>
+              {subCategoriesForMain.map((c) => (
+                <option key={c._id || c.id} value={c._id || c.id}>{c.display_name}</option>
+              ))}
+            </select>
+            <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-indigo-400 pointer-events-none" />
+          </div>
+        )}
       </div>
       </div>{/* end fixed header */}
 
@@ -383,7 +434,7 @@ export default function DhikrTypesManagement() {
           <div className="h-10 w-10 border-4 border-slate-200 border-t-indigo-500 rounded-full animate-spin mb-4"></div>
           <p className="font-bold text-slate-500">Loading dhikr types...</p>
         </div>
-      ) : !isLoading && types.length === 0 && !debouncedSearch && !filterCategory && page === 1 ? (
+      ) : !isLoading && types.length === 0 && !debouncedSearch && !selectedMain && !selectedSub && page === 1 ? (
         <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-24 text-center">
           <Sparkles size={48} className="mx-auto text-slate-300 mb-4" />
           <h3 className="text-xl font-bold text-slate-700 font-display mb-2">No Dhikr Types Yet</h3>
