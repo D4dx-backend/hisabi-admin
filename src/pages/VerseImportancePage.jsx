@@ -49,8 +49,8 @@ function Modal({ item, onClose, onSave }) {
               {item ? <Pencil size={18} /> : <Plus size={18} />}
             </div>
             <div>
-              <h2 className="text-lg font-bold text-slate-800 font-display">{item ? 'Edit Verse Importance' : 'Add Verse Importance'}</h2>
-              <p className="text-xs text-slate-500 font-medium">{item ? 'Update verse importance content' : 'Add a new verse importance entry'}</p>
+              <h2 className="text-lg font-bold text-slate-800 font-display">{item ? 'Edit Quran and Sunnah Importance' : 'Add Quran and Sunnah Importance'}</h2>
+              <p className="text-xs text-slate-500 font-medium">{item ? 'Update quran and sunnah importance content' : 'Add a new quran and sunnah importance entry'}</p>
             </div>
           </div>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors rounded-full p-2 hover:bg-slate-200 focus:outline-none">
@@ -156,7 +156,7 @@ function ViewModal({ item, onClose }) {
               <BookOpen size={18} />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-slate-800 font-display">Verse Importance Details</h2>
+              <h2 className="text-lg font-bold text-slate-800 font-display">Quran and Sunnah Importance Details</h2>
               <p className="text-xs text-slate-500 font-medium">Full content view</p>
             </div>
           </div>
@@ -242,7 +242,7 @@ export default function VerseImportancePage() {
     mutationFn: (d) => adminApi.createVerseImportance(d),
     onSuccess: () => {
       qc.invalidateQueries(['admin-verse-importances']);
-      setSuccessState({ isOpen: true, title: 'Success!', message: 'Verse importance created successfully.' });
+      setSuccessState({ isOpen: true, title: 'Success!', message: 'Quran and Sunnah importance created successfully.' });
       setModal(null);
     },
     onError: (e) => toast.error(e.response?.data?.error || 'Failed to create entry'),
@@ -252,7 +252,7 @@ export default function VerseImportancePage() {
     mutationFn: ({ id, data }) => adminApi.updateVerseImportance(id, data),
     onSuccess: () => {
       qc.invalidateQueries(['admin-verse-importances']);
-      setSuccessState({ isOpen: true, title: 'Success!', message: 'Verse importance updated successfully.' });
+      setSuccessState({ isOpen: true, title: 'Success!', message: 'Quran and Sunnah importance updated successfully.' });
       setModal(null);
     },
     onError: (e) => toast.error(e.response?.data?.error || 'Failed to update entry'),
@@ -304,9 +304,9 @@ export default function VerseImportancePage() {
             <div className="p-2.5 bg-indigo-100 text-indigo-600 rounded-xl shadow-sm border border-indigo-200/50">
               <BookOpen size={24} />
             </div>
-            Verse Importance
+            Quran and Sunnah Importance
           </h1>
-          <p className="text-slate-500 text-sm mt-2 ml-1">Manage the {allItems.length} verse importance entries.</p>
+          <p className="text-slate-500 text-sm mt-2 ml-1">Manage the {allItems.length} quran and sunnah importance entries.</p>
         </div>
         <button
           onClick={() => setModal('create')}
@@ -338,7 +338,7 @@ export default function VerseImportancePage() {
         <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-24 text-center">
           <BookOpen size={48} className="mx-auto text-slate-300 mb-4" />
           <h3 className="text-xl font-bold text-slate-700 font-display mb-2">No Entries Yet</h3>
-          <p className="text-slate-500 max-w-sm mx-auto">Add the first verse importance entry.</p>
+          <p className="text-slate-500 max-w-sm mx-auto">Add the first Quran and Sunnah importance entry.</p>
           <button
             onClick={() => setModal('create')}
             className="mt-6 inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-50 text-indigo-600 font-bold text-sm rounded-xl border border-indigo-200 hover:bg-indigo-100 transition-colors"
@@ -431,7 +431,7 @@ export default function VerseImportancePage() {
         isOpen={!!itemToDelete}
         onClose={() => setItemToDelete(null)}
         onConfirm={() => deleteMutation.mutate(itemToDelete.id)}
-        title="Delete Verse Importance"
+        title="Delete Quran and Sunnah Importance"
         message="Are you sure you want to delete this entry? This action cannot be undone."
         confirmText="Yes, delete it"
         cancelText="Cancel"
