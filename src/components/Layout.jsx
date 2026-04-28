@@ -26,7 +26,7 @@ const contentNav = [
   { to: '/content/fasting-types', label: 'Fasting Types', Icon: Moon },
   { to: '/content/quran-reading-portions', label: 'Reading Portions', Icon: LibraryBig },
   { to: '/content/quran-memorization-portions', label: 'Memorization Portions', Icon: GraduationCap },
-  { to: '/content/verse-importance', label: 'Verse Importance', Icon: BookOpen },
+  { to: '/content/verse-importance', label: 'Quran and Sunnah Importance', Icon: BookOpen },
   { to: '/content/dhikr-importance', label: 'Dhikr Importance', Icon: Sparkles },
   { to: '/content/dua-importance', label: 'Dua Importance', Icon: BookOpen },
   { to: '/content/daily-quotes', label: 'Daily Quotes', Icon: Quote },
