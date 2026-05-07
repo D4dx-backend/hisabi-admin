@@ -40,6 +40,8 @@ export const adminApi = {
   getGroups: (params) => api.get('/admin/groups', { params }),
   getGroupDetail: (id) => api.get(`/admin/groups/${id}`),
   deleteGroup: (id) => api.delete(`/admin/groups/${id}`),
+  transferGroupAdmin: (id, newAdminId) => api.patch(`/admin/groups/${id}/transfer-admin`, { new_admin_id: newAdminId }),
+  exportGroupActivities: (id) => api.get(`/admin/groups/${id}/export-activities`, { responseType: 'blob' }),
 
   getActivityLogs: (params) => api.get('/admin/activity-logs', { params }),
 
@@ -142,6 +144,12 @@ export const adminApi = {
   createLiveLink: (data) => api.post('/admin/live-links', data),
   updateLiveLink: (id, data) => api.put(`/admin/live-links/${id}`, data),
   deleteLiveLink: (id) => api.delete(`/admin/live-links/${id}`),
+
+  // ── Content Management: Ramadan Duas ──────────────────────────────
+  getRamadanDuas: (params) => api.get('/admin/ramadan-duas', { params }),
+  createRamadanDua: (data) => api.post('/admin/ramadan-duas', data),
+  updateRamadanDua: (id, data) => api.put(`/admin/ramadan-duas/${id}`, data),
+  deleteRamadanDua: (id) => api.delete(`/admin/ramadan-duas/${id}`),
 
   // ── Leaderboards ───────────────────────────────────────────────────
   getDhikrTrackingStats: () => api.get('/admin/models/dhikr-tracking'),

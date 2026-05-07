@@ -3,7 +3,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminApi } from '../api/adminApi';
 import {
   ArrowLeft, Trash2, Users, Crown, Calendar,
-  Activity, ScrollText, CheckCircle2, User as UserIcon
+  Activity, ScrollText, CheckCircle2, User as UserIcon,
+  FileSpreadsheet, ShieldCheck
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ConfirmationModal from '../components/ConfirmationModal';
@@ -35,6 +36,9 @@ export default function GroupDetail() {
   const qc = useQueryClient();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
+  const [transferTarget, setTransferTarget] = useState(null);
+  const [isExporting, setIsExporting] = useState(false);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['admin-group', id],
@@ -53,6 +57,41 @@ export default function GroupDetail() {
       setIsDeleteModalOpen(false);
     }
   });
+
+  const transferMutation = useMutation({
+    mutationFn: (newAdminId) => adminApi.transferGroupAdmin(id, newAdminId),
+    onSuccess: () => {
+      qc.invalidateQueries(['admin-group', id]);
+      setIsTransferModalOpen(false);
+      setTransferTarget(null);
+      toast.success('Admin privileges transferred successfully');
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.error || 'Transfer failed');
+      setIsTransferModalOpen(false);
+    }
+  });
+
+  const handleExport = async () => {
+    try {
+      setIsExporting(true);
+      const response = await adminApi.exportGroupActivities(id);
+      const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${group?.name || 'group'}_activities.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success('Activities exported successfully');
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Export failed');
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   if (isLoading) return (
     <div className="p-12 flex flex-col items-center justify-center text-slate-400">
@@ -149,11 +188,23 @@ export default function GroupDetail() {
 
           {/* Activities List */}
           <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
-            <div className="flex items-center gap-2 mb-6">
-              <div className="p-1.5 bg-brand-50 rounded-lg text-brand-600">
-                <CheckCircle2 size={18} />
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-brand-50 rounded-lg text-brand-600">
+                  <CheckCircle2 size={18} />
+                </div>
+                <h2 className="font-bold text-slate-800 text-lg font-display">Group Activities</h2>
               </div>
-              <h2 className="font-bold text-slate-800 text-lg font-display">Group Activities</h2>
+              {activities.length > 0 && (
+                <button
+                  onClick={handleExport}
+                  disabled={isExporting}
+                  className="flex items-center gap-2 text-sm font-semibold text-emerald-600 bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-1.5 hover:bg-emerald-100 transition-all disabled:opacity-50"
+                >
+                  <FileSpreadsheet size={14} />
+                  {isExporting ? 'Exporting...' : 'Export Excel'}
+                </button>
+              )}
             </div>
 
             {activities.length === 0 ? (
@@ -207,6 +258,7 @@ export default function GroupDetail() {
                       <th className="px-6 py-3">Member</th>
                       <th className="px-6 py-3">Email</th>
                       <th className="px-6 py-3">Role</th>
+                      <th className="px-6 py-3">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-50">
@@ -230,6 +282,21 @@ export default function GroupDetail() {
                               </span>
                             ) : (
                               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Member</span>
+                            )}
+                          </td>
+                          <td className="px-6 py-4">
+                            {!isAdmin && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setTransferTarget(u);
+                                  setIsTransferModalOpen(true);
+                                }}
+                                className="flex items-center gap-1 text-xs font-semibold text-brand-600 bg-brand-50 border border-brand-200 rounded-lg px-2.5 py-1 hover:bg-brand-100 transition-all"
+                                title="Make Admin"
+                              >
+                                <ShieldCheck size={12} /> Make Admin
+                              </button>
                             )}
                           </td>
                         </tr>
@@ -263,6 +330,17 @@ export default function GroupDetail() {
         }}
         title="Group Deleted"
         message="The group has been permanently deleted."
+      />
+
+      <ConfirmationModal
+        isOpen={isTransferModalOpen}
+        onClose={() => { setIsTransferModalOpen(false); setTransferTarget(null); }}
+        onConfirm={() => transferMutation.mutate(transferTarget?._id)}
+        title="Transfer Admin"
+        message={`Are you sure you want to transfer admin privileges to "${transferTarget?.name || 'this member'}"? The current admin will become a regular member.`}
+        confirmText="Yes, transfer"
+        cancelText="Cancel"
+        type="warning"
       />
     </div>
   );
