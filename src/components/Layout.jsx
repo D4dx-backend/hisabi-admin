@@ -24,6 +24,7 @@ const contentNav = [
   { to: '/content/dhikr-types', label: 'Adhkar', Icon: Sparkles },
   { to: '/content/thasbeehs', label: 'Thasbeehs', Icon: Sparkles },
   { to: '/content/fasting-types', label: 'Fasting Types', Icon: Moon },
+  { to: '/content/ramadan', label: 'Ramadan', Icon: Moon },
   { to: '/content/quran-reading-portions', label: 'Reading Portions', Icon: LibraryBig },
   { to: '/content/quran-memorization-portions', label: 'Memorization Portions', Icon: GraduationCap },
   { to: '/content/verse-importance', label: 'Quran and Sunnah Importance', Icon: BookOpen },
