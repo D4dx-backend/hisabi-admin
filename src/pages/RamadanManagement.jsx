@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { Plus, Pencil, Trash2, X, Save, Moon, ChevronDown, ChevronUp, Calendar, BookOpen } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, Save, Moon, ChevronDown, ChevronUp, Calendar, BookOpen, Eye } from 'lucide-react';
 import { adminApi } from '../api/adminApi';
 import ConfirmationModal from '../components/ConfirmationModal';
 import SuccessModal from '../components/SuccessModal';
@@ -10,6 +10,68 @@ import SuccessModal from '../components/SuccessModal';
 const EMPTY_DESC = { arabic: '', malayalam: '', english: '', urdu: '' };
 const EMPTY = { day_number: '', title: '', arabic_text: '', isQuranicFont: false, count: '', isCountless: false, malayalam: '', english: '', urdu: '', description: { ...EMPTY_DESC } };
 const EMPTY_OTHER = { title: '', arabic_text: '', category: '', isQuranicFont: false, count: '', isCountless: false, malayalam: '', english: '', urdu: '', description: { ...EMPTY_DESC }, additional_categories: [] };
+
+function ViewModal({ item, onClose }) {
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-start justify-center pt-10 pb-10 overflow-y-auto bg-black/50" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 my-auto" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between p-6 border-b border-slate-100">
+          <div>
+            <h2 className="text-xl font-bold text-slate-800">{item.title}</h2>
+            <span className="text-xs font-medium text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded mt-1 inline-block">Day {item.day_number}</span>
+          </div>
+          <button onClick={onClose} className="p-2 rounded-lg hover:bg-slate-100"><X size={20} /></button>
+        </div>
+        <div className="p-6 space-y-5 max-h-[70vh] overflow-y-auto">
+          <div className="bg-slate-50 rounded-xl p-4">
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Arabic Text</p>
+            <p className="text-right font-arabic text-xl leading-loose text-slate-800" dir="rtl">{item.arabic_text}</p>
+          </div>
+
+          {item.malayalam && (
+            <div>
+              <p className="text-xs font-semibold text-green-600 uppercase tracking-wide mb-1">Malayalam</p>
+              <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">{item.malayalam}</p>
+            </div>
+          )}
+
+          {item.english && (
+            <div>
+              <p className="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-1">English</p>
+              <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">{item.english}</p>
+            </div>
+          )}
+
+          {item.urdu && (
+            <div>
+              <p className="text-xs font-semibold text-orange-600 uppercase tracking-wide mb-1">Urdu</p>
+              <p className="text-sm text-slate-700 leading-relaxed text-right whitespace-pre-line" dir="rtl">{item.urdu}</p>
+            </div>
+          )}
+
+          {(item.description?.arabic || item.description?.malayalam || item.description?.english || item.description?.urdu) && (
+            <div className="border-t border-slate-100 pt-4">
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">Description</p>
+              <div className="space-y-3">
+                {item.description.arabic && <div><p className="text-xs text-slate-400 mb-1">Arabic</p><p className="text-sm text-slate-700 text-right" dir="rtl">{item.description.arabic}</p></div>}
+                {item.description.malayalam && <div><p className="text-xs text-slate-400 mb-1">Malayalam</p><p className="text-sm text-slate-700">{item.description.malayalam}</p></div>}
+                {item.description.english && <div><p className="text-xs text-slate-400 mb-1">English</p><p className="text-sm text-slate-700">{item.description.english}</p></div>}
+                {item.description.urdu && <div><p className="text-xs text-slate-400 mb-1">Urdu</p><p className="text-sm text-slate-700 text-right" dir="rtl">{item.description.urdu}</p></div>}
+              </div>
+            </div>
+          )}
+
+          <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-100">
+            {item.count && <span className="text-xs px-2 py-1 bg-purple-100 text-purple-700 rounded-lg font-medium">Count: ×{item.count}</span>}
+            {item.isCountless && <span className="text-xs px-2 py-1 bg-slate-100 text-slate-600 rounded-lg font-medium">Countless</span>}
+            {item.isQuranicFont && <span className="text-xs px-2 py-1 bg-amber-100 text-amber-700 rounded-lg font-medium">Quranic Font</span>}
+          </div>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}
 
 function Modal({ item, dayNumber, onClose, onSave }) {
   const [form, setForm] = useState(
@@ -122,7 +184,7 @@ function Modal({ item, dayNumber, onClose, onSave }) {
   );
 }
 
-function DaySection({ day, duas, onAdd, onEdit, onDelete }) {
+function DaySection({ day, duas, onAdd, onEdit, onDelete, onView }) {
   const [expanded, setExpanded] = useState(true);
 
   return (
@@ -163,8 +225,9 @@ function DaySection({ day, duas, onAdd, onEdit, onDelete }) {
                 </div>
               </div>
               <div className="flex gap-1 shrink-0">
-                <button onClick={() => onEdit(dua)} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-indigo-600"><Pencil size={15} /></button>
-                <button onClick={() => onDelete(dua)} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-red-600"><Trash2 size={15} /></button>
+                <button onClick={() => onView(dua)} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-emerald-600" title="View"><Eye size={15} /></button>
+                <button onClick={() => onEdit(dua)} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-indigo-600" title="Edit"><Pencil size={15} /></button>
+                <button onClick={() => onDelete(dua)} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-red-600" title="Delete"><Trash2 size={15} /></button>
               </div>
             </div>
           ))}
@@ -228,6 +291,7 @@ function DaysCollectionTab() {
   const [showModal, setShowModal] = useState(false);
   const [addForDay, setAddForDay] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [viewItem, setViewItem] = useState(null);
   const [successMsg, setSuccessMsg] = useState('');
 
   const { data, isLoading } = useQuery({
@@ -308,6 +372,7 @@ function DaysCollectionTab() {
               onAdd={handleAdd}
               onEdit={handleEdit}
               onDelete={setDeleteTarget}
+              onView={setViewItem}
             />
           ))}
         </div>
@@ -320,6 +385,10 @@ function DaysCollectionTab() {
           onClose={() => { setShowModal(false); setEditItem(null); }}
           onSave={handleSave}
         />
+      )}
+
+      {viewItem && (
+        <ViewModal item={viewItem} onClose={() => setViewItem(null)} />
       )}
 
       {deleteTarget && (
