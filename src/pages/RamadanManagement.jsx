@@ -18,7 +18,7 @@ function ViewModal({ item, onClose }) {
         <div className="flex items-center justify-between p-6 border-b border-slate-100">
           <div>
             <h2 className="text-xl font-bold text-slate-800">{item.title}</h2>
-            <span className="text-xs font-medium text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded mt-1 inline-block">Day {item.day_number}</span>
+            {item.day_number && <span className="text-xs font-medium text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded mt-1 inline-block">Day {item.day_number}</span>}
           </div>
           <button onClick={onClose} className="p-2 rounded-lg hover:bg-slate-100"><X size={20} /></button>
         </div>
@@ -411,11 +411,11 @@ function DaysCollectionTab() {
 
 // ─── Others Tab (uses existing Dua model with Ramadan category) ─────────────
 
-function OtherDuaModal({ item, categories, onClose, onSave }) {
+function OtherDuaModal({ item, onClose, onSave }) {
   const [form, setForm] = useState(
     item
-      ? { ...item, category: item.category?._id || item.category || '', description: { ...EMPTY_DESC, ...(item.description || {}) }, additional_categories: (item.additional_categories || []).map(c => c?._id || c), isQuranicFont: item.isQuranicFont || false, isCountless: item.isCountless || false }
-      : EMPTY_OTHER
+      ? { ...item, description: { ...EMPTY_DESC, ...(item.description || {}) }, isQuranicFont: item.isQuranicFont || false, isCountless: item.isCountless || false }
+      : { title: '', arabic_text: '', isQuranicFont: false, count: '', isCountless: false, malayalam: '', english: '', urdu: '', description: { ...EMPTY_DESC } }
   );
 
   const set = (k) => (e) => setForm((p) => ({ ...p, [k]: e.target.value }));
@@ -423,8 +423,8 @@ function OtherDuaModal({ item, categories, onClose, onSave }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!form.title || !form.arabic_text || !form.category) {
-      toast.error('Title, arabic text, and category are required');
+    if (!form.title || !form.arabic_text) {
+      toast.error('Title and arabic text are required');
       return;
     }
     onSave(form);
@@ -438,20 +438,9 @@ function OtherDuaModal({ item, categories, onClose, onSave }) {
           <button onClick={onClose} className="p-2 rounded-lg hover:bg-slate-100"><X size={20} /></button>
         </div>
         <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Title *</label>
-              <input value={form.title} onChange={set('title')} className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Sub-category *</label>
-              <select value={form.category} onChange={set('category')} className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400">
-                <option value="">Select category</option>
-                {categories.map((cat) => (
-                  <option key={cat._id || cat.id} value={cat._id || cat.id}>{cat.name}</option>
-                ))}
-              </select>
-            </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Title *</label>
+            <input value={form.title} onChange={set('title')} className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400" />
           </div>
 
           <div>
@@ -518,6 +507,7 @@ function OtherDuasTab() {
   const [editItem, setEditItem] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [viewItem, setViewItem] = useState(null);
   const [successMsg, setSuccessMsg] = useState('');
 
   // Fetch all dua categories to find Ramadan parent & its sub-categories
@@ -528,9 +518,10 @@ function OtherDuasTab() {
 
   const allCategories = catData?.dua_categories || [];
 
-  // Find the "Ramadan" parent category
+  // Find the "Ramadan" parent category (no parent, named "Ramadan")
   const ramadanParent = useMemo(() => {
-    return allCategories.find((c) => !c.parent && c.name.toLowerCase() === 'ramadan');
+    return allCategories.find((c) => !c.parent && c.name.toLowerCase() === 'ramadan')
+      || allCategories.find((c) => c.name.toLowerCase() === 'ramadan');
   }, [allCategories]);
 
   // Get Ramadan sub-categories
@@ -543,19 +534,12 @@ function OtherDuasTab() {
     });
   }, [allCategories, ramadanParent]);
 
-  // Fetch duas for Ramadan sub-categories
-  const ramadanCatIds = ramadanSubCategories.map((c) => c._id || c.id);
+  // Fetch duas directly for the Ramadan parent category
+  const ramadanParentId = ramadanParent?._id || ramadanParent?.id;
   const { data: duasData, isLoading: duasLoading } = useQuery({
-    queryKey: ['admin-ramadan-other-duas', ramadanCatIds],
-    queryFn: async () => {
-      if (!ramadanCatIds.length) return { duas: [] };
-      // Fetch duas for each Ramadan sub-category
-      const results = await Promise.all(
-        ramadanCatIds.map((catId) => adminApi.getDuas({ category: catId, limit: 100 }).then((r) => r.data.duas || []))
-      );
-      return { duas: results.flat() };
-    },
-    enabled: ramadanCatIds.length > 0,
+    queryKey: ['admin-ramadan-other-duas', ramadanParentId],
+    queryFn: () => adminApi.getDuas({ category: ramadanParentId, limit: 500 }).then((r) => ({ duas: r.data.duas || [] })),
+    enabled: !!ramadanParentId,
   });
 
   const otherDuas = duasData?.duas || [];
@@ -579,8 +563,14 @@ function OtherDuasTab() {
   });
 
   const handleSave = (form) => {
+    const ramadanCatId = ramadanParent?._id || ramadanParent?.id;
+    if (!editItem && !ramadanCatId) {
+      toast.error('Ramadan category not found. Please refresh and try again.');
+      return;
+    }
     const payload = {
       ...form,
+      category: editItem ? (editItem.category?._id || editItem.category) : ramadanCatId,
       count: form.isCountless ? null : (form.count ? parseInt(form.count) : null),
     };
     if (editItem) {
@@ -590,21 +580,10 @@ function OtherDuasTab() {
     }
   };
 
-  // Group by category
-  const duasByCat = {};
-  ramadanSubCategories.forEach((cat) => {
-    const catId = cat._id || cat.id;
-    duasByCat[catId] = { category: cat, duas: [] };
-  });
-  otherDuas.forEach((dua) => {
-    const catId = dua.category?._id || dua.category?.id || dua.category;
-    if (duasByCat[catId]) duasByCat[catId].duas.push(dua);
-  });
-
   return (
     <>
       <div className="flex items-center justify-between">
-        <p className="text-sm text-slate-500">{otherDuas.length} duas in {ramadanSubCategories.length} categories</p>
+        <p className="text-sm text-slate-500">{otherDuas.length} duas</p>
         <button
           onClick={() => { setEditItem(null); setShowModal(true); }}
           className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700"
@@ -617,43 +596,29 @@ function OtherDuasTab() {
         <div className="flex items-center justify-center py-20">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
         </div>
-      ) : ramadanSubCategories.length === 0 ? (
+      ) : otherDuas.length === 0 ? (
         <div className="text-center py-16 text-slate-400">
-          <p>No Ramadan category found. Create a "Ramadan" category in Dua Categories first.</p>
+          <p>No duas added yet.</p>
         </div>
       ) : (
-        <div className="space-y-3">
-          {Object.values(duasByCat).map(({ category, duas }) => (
-            <div key={category._id || category.id} className="border border-slate-200 rounded-xl overflow-hidden">
-              <div className="px-5 py-4 bg-gradient-to-r from-emerald-50 to-teal-50 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs font-bold">{duas.length}</div>
-                  <span className="font-semibold text-slate-800">{category.name}</span>
+        <div className="border border-slate-200 rounded-xl divide-y divide-slate-100 overflow-hidden">
+          {otherDuas.map((dua) => (
+            <div key={dua._id || dua.id} className="px-5 py-3 flex items-start justify-between gap-4 hover:bg-slate-50">
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-slate-800 truncate">{dua.title}</p>
+                <p className="text-sm text-slate-500 mt-1 truncate font-arabic text-right" dir="rtl">{dua.arabic_text?.slice(0, 80)}{dua.arabic_text?.length > 80 ? '...' : ''}</p>
+                <div className="flex gap-2 mt-1.5">
+                  {dua.malayalam && <span className="text-[10px] px-1.5 py-0.5 bg-green-100 text-green-700 rounded font-medium">ML</span>}
+                  {dua.english && <span className="text-[10px] px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded font-medium">EN</span>}
+                  {dua.urdu && <span className="text-[10px] px-1.5 py-0.5 bg-orange-100 text-orange-700 rounded font-medium">UR</span>}
+                  {dua.count && <span className="text-[10px] px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded font-medium">×{dua.count}</span>}
                 </div>
               </div>
-              {duas.length > 0 ? (
-                <div className="divide-y divide-slate-100">
-                  {duas.map((dua) => (
-                    <div key={dua._id || dua.id} className="px-5 py-3 flex items-start justify-between gap-4 hover:bg-slate-50">
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-slate-800 truncate">{dua.title}</p>
-                        <p className="text-sm text-slate-500 mt-1 truncate font-arabic text-right" dir="rtl">{dua.arabic_text?.slice(0, 80)}{dua.arabic_text?.length > 80 ? '...' : ''}</p>
-                        <div className="flex gap-2 mt-1.5">
-                          {dua.malayalam && <span className="text-[10px] px-1.5 py-0.5 bg-green-100 text-green-700 rounded font-medium">ML</span>}
-                          {dua.english && <span className="text-[10px] px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded font-medium">EN</span>}
-                          {dua.urdu && <span className="text-[10px] px-1.5 py-0.5 bg-orange-100 text-orange-700 rounded font-medium">UR</span>}
-                        </div>
-                      </div>
-                      <div className="flex gap-1 shrink-0">
-                        <button onClick={() => { setEditItem(dua); setShowModal(true); }} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-indigo-600"><Pencil size={15} /></button>
-                        <button onClick={() => setDeleteTarget(dua)} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-red-600"><Trash2 size={15} /></button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="px-5 py-4 text-center text-slate-400 text-sm">No duas in this category yet.</div>
-              )}
+              <div className="flex gap-1 shrink-0">
+                <button onClick={() => setViewItem(dua)} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-emerald-600" title="View"><Eye size={15} /></button>
+                <button onClick={() => { setEditItem(dua); setShowModal(true); }} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-indigo-600" title="Edit"><Pencil size={15} /></button>
+                <button onClick={() => setDeleteTarget(dua)} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-red-600" title="Delete"><Trash2 size={15} /></button>
+              </div>
             </div>
           ))}
         </div>
@@ -662,10 +627,13 @@ function OtherDuasTab() {
       {showModal && (
         <OtherDuaModal
           item={editItem}
-          categories={ramadanSubCategories}
           onClose={() => { setShowModal(false); setEditItem(null); }}
           onSave={handleSave}
         />
+      )}
+
+      {viewItem && (
+        <ViewModal item={viewItem} onClose={() => setViewItem(null)} />
       )}
 
       {deleteTarget && (
