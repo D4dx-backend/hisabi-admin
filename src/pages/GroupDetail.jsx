@@ -64,7 +64,7 @@ export default function GroupDetail() {
       qc.invalidateQueries(['admin-group', id]);
       setIsTransferModalOpen(false);
       setTransferTarget(null);
-      toast.success('Admin privileges transferred successfully');
+      toast.success('Admin privileges granted successfully');
     },
     onError: (err) => {
       toast.error(err.response?.data?.error || 'Transfer failed');
@@ -157,9 +157,13 @@ export default function GroupDetail() {
                 <InfoRow label="Created" value={group?.created_at ? new Date(group.created_at).toLocaleDateString() : '—'} icon={Calendar} />
                 <div className="flex items-center justify-between py-3 border-b border-slate-50 text-sm">
                   <div className="flex items-center gap-2 text-slate-500 font-medium">
-                    <Crown size={16} className="text-amber-500" /> Admin
+                    <Crown size={16} className="text-amber-500" /> Admins
                   </div>
-                  <span className="font-bold text-slate-800 text-right">{group?.admin_id?.name || '—'}</span>
+                  <div className="text-right">
+                    {[group?.admin_id, ...(group?.co_admins || [])].filter(Boolean).map((a) => (
+                      <span key={a._id} className="block font-bold text-slate-800">{a.name || a.email || '—'}</span>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
@@ -263,7 +267,11 @@ export default function GroupDetail() {
                   </thead>
                   <tbody className="divide-y divide-slate-50">
                     {membersList.map((u) => {
-                      const isAdmin = group?.admin_id?._id === u._id;
+                      const adminIdStrings = [
+                        group?.admin_id?._id,
+                        ...(group?.co_admins || []).map((ca) => ca._id),
+                      ].filter(Boolean).map(String);
+                      const isAdmin = adminIdStrings.includes(String(u._id));
                       return (
                         <tr key={u._id} className="hover:bg-slate-50/80 transition-colors cursor-pointer" onClick={() => navigate(`/users/${u._id}`)}>
                           <td className="px-6 py-4">
@@ -336,9 +344,9 @@ export default function GroupDetail() {
         isOpen={isTransferModalOpen}
         onClose={() => { setIsTransferModalOpen(false); setTransferTarget(null); }}
         onConfirm={() => transferMutation.mutate(transferTarget?._id)}
-        title="Transfer Admin"
-        message={`Are you sure you want to transfer admin privileges to "${transferTarget?.name || 'this member'}"? The current admin will become a regular member.`}
-        confirmText="Yes, transfer"
+        title="Grant Admin"
+        message={`Are you sure you want to grant admin privileges to "${transferTarget?.name || 'this member'}"? They will be able to manage group activities.`}
+        confirmText="Yes, grant"
         cancelText="Cancel"
         type="warning"
       />
