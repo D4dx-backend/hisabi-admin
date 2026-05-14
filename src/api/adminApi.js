@@ -151,6 +151,12 @@ export const adminApi = {
   updateRamadanDua: (id, data) => api.put(`/admin/ramadan-duas/${id}`, data),
   deleteRamadanDua: (id) => api.delete(`/admin/ramadan-duas/${id}`),
 
+  // ── Content Management: Banners ────────────────────────────────────
+  getBanners: (params) => api.get('/admin/banners', { params }),
+  createBanner: (formData) => api.post('/admin/banners', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  updateBanner: (id, formData) => api.put(`/admin/banners/${id}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  deleteBanner: (id) => api.delete(`/admin/banners/${id}`),
+
   // ── Leaderboards ───────────────────────────────────────────────────
   getDhikrTrackingStats: () => api.get('/admin/models/dhikr-tracking'),
   getDuaMemorizationStats: () => api.get('/admin/models/dua-memorization'),
