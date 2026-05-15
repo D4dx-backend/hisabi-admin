@@ -32,6 +32,7 @@ import HadeesCategoriesManagement from './pages/HadeesCategoriesManagement';
 import NamesOfAllahManagement from './pages/NamesOfAllahManagement';
 import LiveLinksManagement from './pages/LiveLinksManagement';
 import RamadanManagement from './pages/RamadanManagement';
+import BannersManagement from './pages/BannersManagement';
 
 // Group Activities
 import GroupActivitiesPage from './pages/GroupActivitiesPage';
@@ -92,6 +93,7 @@ function App() {
                       <Route path="content/names-of-allah" element={<NamesOfAllahManagement />} />
                       <Route path="content/live-links" element={<LiveLinksManagement />} />
                       <Route path="content/ramadan" element={<RamadanManagement />} />
+                      <Route path="content/banners" element={<BannersManagement />} />
 
                       {/* Tracking Data / Leaderboards */}
                       <Route path="tracking/dhikr" element={<DhikrTrackingPage />} />
